@@ -3,116 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sorteos Elite 🍀</title>
+    <title>Sorteos Elite 🍀 - Control Maestro</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 
     <style>
-        :root { --gold: #d4af37; --gold-light: #f1d592; --dark-100: #0f172a; --dark-200: #1e293b; --danger: #ff4d4d; --success: #22c55e; }
-        body { background-color: var(--dark-100) !important; color: #f8fafc; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
-        .container { max-width: 550px; margin: auto; background: var(--dark-200); border-radius: 25px; padding: 20px; border: 1px solid #334155; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+        :root { --gold: #d4af37; --gold-light: #f1d592; --dark-100: #0f172a; --dark-200: #1e293b; --danger: #ff4d4d; --success: #22c55e; --warning: #f59e0b; }
+        body { background-color: var(--dark-100) !important; color: #f8fafc; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; }
+        .container { max-width: 600px; margin: auto; background: var(--dark-200); border-radius: 20px; padding: 15px; border: 1px solid #334155; }
         
-        /* BOTÓN HISTORIAL */
-        .btn-history-top { background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 12px; border-radius: 12px; width: 100%; font-weight: bold; margin-bottom: 25px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; text-transform: uppercase; }
+        /* DASHBOARD MASTER */
+        .db-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .db-card { background: #0f172a; padding: 10px; border-radius: 12px; border-top: 3px solid var(--gold); text-align: center; }
+        .db-card.alerta { border-top-color: var(--danger); background: #2d1a1a; } /* Estilo para alerta de liberación */
+        .db-card h4 { margin: 0; font-size: 10px; color: #94a3b8; text-transform: uppercase; }
+        .db-card p { margin: 3px 0 0 0; font-size: 16px; font-weight: 900; }
 
-        .header { text-align: center; padding: 10px 0 20px 0; }
-        .header h1 { color: var(--gold); font-size: 32px; margin: 0; letter-spacing: 2px; font-weight: 900; }
+        /* TABLA DE PARTICIPANTES */
+        #adminPanel { background: #f8fafc; color: #1e293b; border-radius: 20px; padding: 15px; margin-top: 20px; display: none; }
+        .admin-section { background: white; padding: 10px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #ddd; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th { background: #1e293b; color: white; padding: 8px; border-radius: 5px 5px 0 0; }
+        td { border-bottom: 1px solid #eee; padding: 8px; text-align: center; }
 
-        /* CARDS INICIO */
-        .grid-rifas { display: grid; gap: 20px; }
-        .card-rifa { background: #1e293b; border-radius: 20px; overflow: hidden; border: 1px solid #334155; position: relative; cursor: pointer; }
-        .card-rifa img { width: 100%; height: 200px; object-fit: cover; }
-        .card-timer-mini { background: rgba(0,0,0,0.8); color: var(--gold-light); font-size: 11px; font-weight: bold; padding: 6px; text-align: center; border-top: 1px solid var(--gold); }
+        /* ALERTAS VISUALES */
+        .status-badge { padding: 4px 8px; border-radius: 5px; font-weight: bold; font-size: 10px; border: none; cursor: pointer; }
+        .status-badge.pagado { background: var(--success); color: white; }
+        .status-badge.pendiente { background: var(--warning); color: white; }
+        .row-warning { background: #fff5f5; } /* Fila resaltada en admin */
+        .text-danger-blink { color: var(--danger); font-weight: 900; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-        .promo-badge { position: absolute; top: 12px; left: 12px; background: var(--danger); color: white; padding: 4px 12px; border-radius: 50px; font-weight: 900; font-size: 11px; z-index: 10; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        /* PUBLIC VIEW */
+        .timer-container { background: rgba(0,0,0,0.5); padding: 10px; border-radius: 12px; border: 1px solid var(--gold); text-align: center; margin-bottom: 10px; }
+        .clock-big { font-family: monospace; font-size: 20px; color: var(--gold-light); letter-spacing: 1px; }
+        .grid-numeros { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 5px; max-height: 250px; overflow-y: auto; padding: 10px; background: #0f172a; border-radius: 10px; }
+        .numero { height: 40px; display: flex; align-items: center; justify-content: center; background: #334155; border-radius: 6px; font-weight: bold; cursor: pointer; border: 1px solid #475569; }
+        .numero.ocupado { opacity: 0.15; background: black; pointer-events: none; }
+        .numero.seleccionado { background: var(--gold); color: black; box-shadow: 0 0 10px var(--gold); transform: scale(1.05); }
 
-        /* CONTADORES INTERNOS */
-        .timer-main { background: rgba(0,0,0,0.4); padding: 12px; border-radius: 15px; border: 1px solid var(--gold); margin: 10px 0; text-align: center; }
-        .timer-promo-box { background: var(--danger); color: white; padding: 12px; border-radius: 15px; margin: 10px 0; text-align: center; font-weight: bold; box-shadow: 0 0 15px rgba(255,77,77,0.4); }
-        .clock-text { font-family: monospace; font-size: 22px; display: block; letter-spacing: 1px; }
-
-        /* TABLERO */
-        .grid-numeros { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 8px; margin: 15px 0; max-height: 300px; overflow-y: auto; padding: 10px; background: #0f172a; border-radius: 15px; }
-        .numero { height: 48px; display: flex; align-items: center; justify-content: center; background: #334155; border-radius: 10px; font-weight: bold; border: 1px solid #475569; }
-        .numero.seleccionado { background: var(--gold) !important; color: black; box-shadow: 0 0 15px var(--gold); }
-        .numero.ocupado { opacity: 0.2; background: #000 !important; text-decoration: line-through; }
-        
-        input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #475569; background: #0f172a; color: white; margin-bottom: 10px; font-size: 16px; box-sizing: border-box; }
-        .btn-gold { background: linear-gradient(45deg, var(--gold), #fbbf24); color: black; font-weight: 900; border: none; padding: 18px; border-radius: 15px; cursor: pointer; width: 100%; font-size: 16px; }
-
-        #rifaContenedor, #historialSeccion, #adminPanel { display: none; }
-        
-        /* ADMIN STYLES */
-        .admin-box { background: #f8fafc; color: #1e293b; padding: 20px; border-radius: 20px; border: 2px solid var(--gold); }
-        .switch-container { display: flex; align-items: center; gap: 10px; background: #e2e8f0; padding: 10px; border-radius: 10px; margin-bottom: 15px; }
+        .btn-gold { background: linear-gradient(45deg, var(--gold), #fbbf24); color: black; font-weight: 900; border: none; padding: 14px; border-radius: 10px; cursor: pointer; width: 100%; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div id="pantallaInicio">
-    <div class="header"><h1>SORTEOS ELITE 🍀</h1></div>
-    <button onclick="toggleHistorial()" class="btn-history-top">🏆 VER GANADORES ANTERIORES</button>
-    <div id="gridRifasActivas" class="grid-rifas"></div>
+    <div style="text-align:center; padding: 15px;">
+        <h1 style="color:var(--gold); margin:0; letter-spacing: 1px;">SORTEOS ELITE 🍀</h1>
+    </div>
+    <div id="gridRifasActivas" style="display:grid; gap:12px;"></div>
 </div>
 
-<div id="rifaContenedor" class="container animate__animated animate__fadeIn">
-    <button onclick="volverInicio()" style="background:none; color:#94a3b8; border:none; margin-bottom:10px; cursor:pointer; font-weight:bold;">✕ VOLVER</button>
-    
-    <img id="premioImgVer" src="" style="width:100%; border-radius:20px; border: 2px solid var(--gold);">
+<div id="rifaContenedor" class="container animate__animated animate__fadeIn" style="display:none;">
+    <button onclick="volverInicio()" style="background:none; color:#94a3b8; border:none; cursor:pointer; font-weight:bold; margin-bottom:5px;">✕ SALIR</button>
+    <img id="premioImgVer" src="" style="width:100%; border-radius:12px; border: 1px solid var(--gold);">
 
-    <div id="seccionPromoReloj" class="timer-promo-box" style="display:none;">
-        <span id="textoPromoAdmin">OFERTA ACTIVA 🔥</span>
-        <span id="relojPromo" class="clock-text">00:00:00</span>
+    <div id="relojOfertaDiv" style="background:var(--danger); color:white; padding:6px; border-radius:8px; text-align:center; margin:10px 0; font-weight:bold; display:none; font-size:12px;">
+        <span id="txtPromo">OFERTA</span>: <span id="clockOferta" style="font-family:monospace;">00:00:00</span>
     </div>
 
-    <div class="timer-main">
-        <span style="font-size:10px; color:var(--gold); font-weight:bold;">EL SORTEO CIERRA EN (8PM):</span>
-        <span id="relojSorteo" class="clock-text">00:00:00:00</span>
+    <div class="timer-container">
+        <small style="color:var(--gold); font-size:9px; font-weight:bold;">SORTEO CIERRA (8:00 PM):</small><br>
+        <span id="clockSorteo" class="clock-big">00:00:00:00</span>
     </div>
 
-    <h2 id="tituloRifa" style="margin:10px 0; color:var(--gold-light); text-align:center;"></h2>
-    <p id="precioInfo" style="font-size: 28px; font-weight: 900; color:var(--success); margin:0; text-align:center;"></p>
-    
-    <div style="margin-top:20px;">
-        <input type="text" id="nombre" placeholder="Nombre completo">
-        <input type="tel" id="telefono" placeholder="WhatsApp">
+    <h2 id="tituloRifa" style="text-align:center; color:var(--gold-light); margin:5px 0; font-size:20px;"></h2>
+    <p id="precioInfo" style="text-align:center; font-size:24px; color:var(--success); font-weight:900; margin-bottom:10px;"></p>
+
+    <div style="display:flex; flex-direction:column; gap:8px;">
+        <input type="text" id="nombre" placeholder="Nombre completo" style="padding:10px; border-radius:8px; border:none; background:#0f172a; color:white;">
+        <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)" style="padding:10px; border-radius:8px; border:none; background:#0f172a; color:white;">
         <div id="tablero" class="grid-numeros"></div>
-        <button onclick="registrar()" class="btn-gold">APARTAR MI NÚMERO 🚀</button>
+        <button onclick="registrar()" class="btn-gold">RESERVAR MI NÚMERO 🚀</button>
     </div>
 </div>
 
-<div id="historialSeccion" class="container">
-    <button onclick="volverInicio()" style="background:none; border:none; color:white; cursor:pointer; margin-bottom:10px;">← ATRÁS</button>
-    <h2 style="text-align:center;">🏆 SALÓN DE LA FAMA</h2>
-    <div id="listaHistorial"></div>
-</div>
-
-<button onclick="accesoAdmin()" style="opacity:0.02; margin-top:50px; width:100%; height:30px; border:none;">ADMIN</button>
+<button onclick="accesoAdmin()" style="opacity:0.01; margin-top:40px; width:100%; height:30px; border:none;">ADMIN</button>
 
 <div id="adminPanel" class="container">
-    <div class="admin-box">
-        <h3 style="margin-top:0;">🛠 EDITOR DE RIFA</h3>
-        
-        <label>Título</label><input type="text" id="confTitulo">
-        <label>Foto URL</label><input type="text" id="confFoto">
-        <label>Números</label><input type="number" id="confTotal">
-        <label>Precio $</label><input type="number" id="confPrecio">
-        <label>Fecha Sorteo</label><input type="date" id="confFecha">
-        
-        <hr>
-        <div class="switch-container">
-            <input type="checkbox" id="confPromoActiva" style="width:25px; margin:0;">
-            <label style="margin:0; font-size:14px; color:red;">¿ACTIVAR CONTADOR DE OFERTA? 🔥</label>
-        </div>
-        
-        <label>Texto de la Oferta (Ej: 2x1 solo hoy)</label>
-        <input type="text" id="confPromoTexto" placeholder="Escribe el porcentaje o frase">
-        
-        <button onclick="guardarConfig()" class="btn-gold">💾 ACTUALIZAR SORTEO</button>
-        <button onclick="borrarSinHistorial()" style="background:red; color:white; border:none; padding:10px; border-radius:10px; width:100%; margin-top:10px; font-weight:bold;">🗑 ELIMINAR RIFA</button>
+    <h3 style="text-align:center; margin:0 0 10px 0;">📊 CONTROL DE CAJA</h3>
+    
+    <div class="db-grid">
+        <div class="db-card"><h4>Recaudado</h4><p id="statDinero" style="color:var(--success)">$0</p></div>
+        <div class="db-card"><h4>Por Cobrar</h4><p id="statPendiente" style="color:var(--warning)">$0</p></div>
+        <div class="db-card"><h4>Apartados</h4><p id="statApartados">0</p></div>
+        <div class="db-card alerta" id="cardAlerta"><h4>Por Liberar ⚠️</h4><p id="statAlerta" style="color:var(--danger)">0</p></div>
     </div>
+
+    <div class="admin-section">
+        <h4 style="margin:0 0 8px 0;">👥 LISTA DE COBRO (5 DÍAS MÁX)</h4>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead><tr><th>#</th><th>Nombre</th><th>Haces</th><th>Estado</th><th>Acción</th></tr></thead>
+                <tbody id="cuerpoTablaAdmin"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="admin-section">
+        <h4 style="margin:0 0 8px 0;">🔧 CONFIGURACIÓN Y OFERTA</h4>
+        <label style="font-size:10px;">URL Imagen</label><input type="text" id="confFoto" style="margin-bottom:8px;">
+        <label style="font-size:10px;">Boleto $</label><input type="number" id="confPrecio" style="margin-bottom:8px;">
+        <label style="font-size:10px;">Fecha Sorteo</label><input type="date" id="confFecha" style="margin-bottom:8px;">
+        
+        <div style="background:#fff1f1; padding:8px; border-radius:8px; border:1px solid #ffcfcf;">
+            <label style="font-size:12px;"><input type="checkbox" id="confPromoActiva"> <b>ACTIVAR OFERTA</b></label>
+            <input type="text" id="confPromoTexto" placeholder="Ej: 2x1 solo hoy" style="margin:5px 0;">
+            <input type="datetime-local" id="confPromoExpira">
+        </div>
+        <button onclick="guardarConfig()" class="btn-gold" style="margin-top:10px;">💾 GUARDAR CAMBIOS</button>
+    </div>
+    <button onclick="borrarSinHistorial()" style="color:red; background:none; border:none; cursor:pointer; font-size:10px; width:100%; margin-top:10px;">ELIMINAR ESTE SORTEO</button>
 </div>
 
 <script>
@@ -128,35 +130,17 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    let rifaActualID = "", numeroSeleccionado = null, compradores = [], configRifa = {}, intervalMain, intervalCards = [];
+    let rifaActualID = "", numeroSeleccionado = null, compradores = [], configRifa = {}, intervalRelojes;
 
+    // INICIO: CARGAR RIFAS
     db.ref('rifas_activas').on('value', snap => {
-        const grid = document.getElementById('gridRifasActivas');
-        grid.innerHTML = '';
-        const data = snap.val();
-        if(!data) return;
-        intervalCards.forEach(i => clearInterval(i));
+        const grid = document.getElementById('gridRifasActivas'); grid.innerHTML = '';
+        const data = snap.val(); if(!data) return;
         for(let id in data) {
-            const rId = id.replace(/\s+/g, '-');
-            grid.innerHTML += `
-                <div class="card-rifa" onclick="abrirRifa('${id}')">
-                    ${data[id].config.promoActiva ? `<div class="promo-badge">${data[id].config.promoTexto} 🔥</div>` : ''}
-                    <img src="${data[id].config.foto}">
-                    <div id="mini-clock-${rId}" class="card-timer-mini">CIERRA: --:--:--</div>
-                    <div style="padding:12px; text-align:center;">
-                        <h4 style="margin:0; color:var(--gold-light)">${id}</h4>
-                        <span style="color:var(--success); font-weight:900; font-size:18px;">$${data[id].config.precio}</span>
-                    </div>
-                </div>`;
-            const interval = setInterval(() => {
-                const el = document.getElementById(`mini-clock-${rId}`);
-                if(!el) return;
-                const dist = new Date(data[id].config.fechaSorteo + "T20:00:00").getTime() - new Date().getTime();
-                if(dist < 0) { el.innerText = "¡SORTEO FINALIZADO!"; return; }
-                const d = Math.floor(dist/86400000), h = Math.floor((dist%86400000)/3600000), m = Math.floor((dist%3600000)/60000);
-                el.innerText = `CIERRA EN: ${d}d ${h}h ${m}m`;
-            }, 1000);
-            intervalCards.push(interval);
+            grid.innerHTML += `<div class="card-rifa" onclick="abrirRifa('${id}')" style="background:#1e293b; border-radius:12px; overflow:hidden; border:1px solid #334155; display:flex; align-items:center; padding:8px;">
+                <img src="${data[id].config.foto}" style="width:60px; height:60px; border-radius:8px; object-fit:cover;">
+                <div style="margin-left:12px;"><h4 style="margin:0; color:var(--gold)">${id}</h4><small>$${data[id].config.precio}</small></div>
+            </div>`;
         }
     });
 
@@ -165,58 +149,111 @@
         document.getElementById('pantallaInicio').style.display = 'none';
         document.getElementById('rifaContenedor').style.display = 'block';
         
-        db.ref('rifas_activas/'+id+'/config').on('value', snap => {
-            configRifa = snap.val();
-            if(!configRifa) return;
+        db.ref('rifas_activas/'+id).on('value', snap => {
+            const data = snap.val(); if(!data) return;
+            configRifa = data.config;
+            compradores = data.participantes ? Object.entries(data.participantes).map(([k,v]) => ({id:k, ...v})) : [];
+
             document.getElementById('tituloRifa').innerText = id;
             document.getElementById('premioImgVer').src = configRifa.foto;
             document.getElementById('precioInfo').innerText = "$"+configRifa.precio;
             
-            // Llenar Admin
-            document.getElementById('confTitulo').value = id;
+            // LLENAR ADMIN
             document.getElementById('confFoto').value = configRifa.foto;
-            document.getElementById('confTotal').value = configRifa.total;
             document.getElementById('confPrecio').value = configRifa.precio;
-            document.getElementById('confFecha').value = configRifa.fechaSorteo || "";
-            document.getElementById('confPromoActiva').checked = configRifa.promoActiva || false;
+            document.getElementById('confFecha').value = configRifa.fechaSorteo;
+            document.getElementById('confPromoActiva').checked = configRifa.promoActiva;
             document.getElementById('confPromoTexto').value = configRifa.promoTexto || "";
+            document.getElementById('confPromoExpira').value = configRifa.promoExpira || "";
 
-            if(intervalMain) clearInterval(intervalMain);
-            intervalMain = setInterval(() => {
-                const ahora = new Date().getTime();
-                const finSorteo = new Date(configRifa.fechaSorteo + "T20:00:00").getTime();
-                
-                // Reloj Sorteo
-                const distS = finSorteo - ahora;
-                const rS = document.getElementById('relojSorteo');
-                if(distS < 0) rS.innerText = "FINALIZADO";
-                else {
-                    const dd = Math.floor(distS/86400000), hh = Math.floor((distS%86400000)/3600000), mm = Math.floor((distS%3600000)/60000), ss = Math.floor((distS%60000)/1000);
-                    rS.innerText = `${dd}d ${hh}h ${mm}m ${ss}s`;
-                }
-
-                // Reloj Promo (Solo si está activado el checkbox)
-                const secP = document.getElementById('seccionPromoReloj');
-                if(configRifa.promoActiva) {
-                    secP.style.display = 'block';
-                    document.getElementById('textoPromoAdmin').innerText = configRifa.promoTexto + " TERMINA EN: 🔥";
-                    const finPromo = finSorteo - (1000 * 60 * 60 * 12); // Acaba 12h antes
-                    const distP = finPromo - ahora;
-                    if(distP < 0) secP.style.display = 'none';
-                    else {
-                        const ph = Math.floor(distP/3600000), pm = Math.floor((distP%3600000)/60000), ps = Math.floor((distP%60000)/1000);
-                        document.getElementById('relojPromo').innerText = `${ph}h ${pm}m ${ps}s`;
-                    }
-                } else { secP.style.display = 'none'; }
-            }, 1000);
+            actualizarDashboard();
+            iniciarContadores();
             dibujarTablero();
         });
-        db.ref('rifas_activas/'+id+'/participantes').on('value', snap => {
-            compradores = [];
-            const d = snap.val();
-            for(let k in d) compradores.push({key:k, ...d[k]});
-            dibujarTablero();
+    }
+
+    function actualizarDashboard() {
+        const pagadosCount = compradores.filter(c => c.pagado).length;
+        const hoy = new Date().getTime();
+        
+        // Calcular caducados (5 días o más sin pago)
+        const caducados = compradores.filter(c => !c.pagado && (Math.floor((hoy - c.fechaRegistro) / 86400000) >= 5));
+
+        document.getElementById('statDinero').innerText = "$" + (pagadosCount * configRifa.precio);
+        document.getElementById('statPendiente').innerText = "$" + ((compradores.length - pagadosCount) * configRifa.precio);
+        document.getElementById('statApartados').innerText = compradores.length;
+        document.getElementById('statLibres').innerText = configRifa.total - compradores.length;
+        document.getElementById('statAlerta').innerText = caducados.length;
+        
+        // Resaltar card de alerta si hay boletos por liberar
+        document.getElementById('cardAlerta').style.background = caducados.length > 0 ? "#451a1a" : "#0f172a";
+
+        // Tabla de Participantes
+        const cuerpo = document.getElementById('cuerpoTablaAdmin'); cuerpo.innerHTML = '';
+        compradores.sort((a,b)=>a.numero-b.numero).forEach(c => {
+            const diasHaces = Math.floor((hoy - c.fechaRegistro) / 86400000);
+            const esAlerta = !c.pagado && diasHaces >= 5;
+            
+            cuerpo.innerHTML += `<tr class="${esAlerta ? 'row-warning' : ''}">
+                <td>#${c.numero}</td>
+                <td>${c.nombre.substring(0,8)}..</td>
+                <td class="${esAlerta ? 'text-danger-blink' : ''}">${diasHaces}d</td>
+                <td><button class="status-badge ${c.pagado?'pagado':'pendiente'}" onclick="marcarPago('${c.id}',${c.pagado})">${c.pagado?'PAGÓ':'PEND'}</button></td>
+                <td><button onclick="liberarNumero('${c.id}',${c.numero})" style="background:none; border:none; cursor:pointer;">${esAlerta ? '⚠️' : '🗑️'}</button></td>
+            </tr>`;
         });
+    }
+
+    function iniciarContadores() {
+        if(intervalRelojes) clearInterval(intervalRelojes);
+        intervalRelojes = setInterval(() => {
+            const ahora = new Date().getTime();
+            const finS = new Date(configRifa.fechaSorteo + "T20:00:00").getTime();
+            const dS = finS - ahora;
+            document.getElementById('clockSorteo').innerText = dS < 0 ? "SORTEANDO..." : 
+                `${Math.floor(dS/86400000)}d ${Math.floor((dS%86400000)/3600000)}h ${Math.floor((dS%3600000)/60000)}m ${Math.floor((dS%60000)/1000)}s`;
+
+            if(configRifa.promoActiva && configRifa.promoExpira) {
+                const finO = new Date(configRifa.promoExpira).getTime();
+                const dO = finO - ahora;
+                if(dO > 0) {
+                    document.getElementById('relojOfertaDiv').style.display = 'block';
+                    document.getElementById('txtPromo').innerText = configRifa.promoTexto;
+                    document.getElementById('clockOferta').innerText = `${Math.floor(dO/3600000)}h ${Math.floor((dO%3600000)/60000)}m ${Math.floor((dO%60000)/1000)}s`;
+                } else { document.getElementById('relojOfertaDiv').style.display = 'none'; }
+            }
+        }, 1000);
+    }
+
+    function marcarPago(cid, estado) { db.ref('rifas_activas/'+rifaActualID+'/participantes/'+cid).update({pagado: !estado}); }
+    
+    function liberarNumero(cid, num) {
+        if(confirm(`¿Deseas liberar el #${num} y regresarlo al tablero?`)) {
+            db.ref('rifas_activas/'+rifaActualID+'/participantes/'+cid).remove();
+        }
+    }
+
+    function registrar() {
+        if(!numeroSeleccionado) return alert("Selecciona un número");
+        const n = document.getElementById('nombre').value, t = document.getElementById('telefono').value;
+        if(!n || !t) return alert("Completa tus datos");
+        db.ref('rifas_activas/'+rifaActualID+'/participantes').push({
+            nombre:n, tel:t, numero:numeroSeleccionado, pagado:false, fechaRegistro: new Date().getTime()
+        });
+        const msg = `Aparté el # ${numeroSeleccionado} para ${rifaActualID}. Soy ${n}. ¿Me pasas info de pago?`;
+        window.open(`https://wa.me/523310711283?text=${encodeURIComponent(msg)}`, '_blank');
+        numeroSeleccionado = null;
+    }
+
+    function guardarConfig() {
+        db.ref('rifas_activas/'+rifaActualID+'/config').update({
+            foto: document.getElementById('confFoto').value,
+            precio: parseInt(document.getElementById('confPrecio').value),
+            fechaSorteo: document.getElementById('confFecha').value,
+            promoActiva: document.getElementById('confPromoActiva').checked,
+            promoTexto: document.getElementById('confPromoTexto').value,
+            promoExpira: document.getElementById('confPromoExpira').value
+        }).then(()=>alert("Guardado"));
     }
 
     function dibujarTablero() {
@@ -236,30 +273,9 @@
         }
     }
 
-    function guardarConfig() {
-        const tit = document.getElementById('confTitulo').value;
-        db.ref('rifas_activas/'+tit+'/config').update({
-            foto: document.getElementById('confFoto').value,
-            total: parseInt(document.getElementById('confTotal').value),
-            precio: parseInt(document.getElementById('confPrecio').value),
-            fechaSorteo: document.getElementById('confFecha').value,
-            promoActiva: document.getElementById('confPromoActiva').checked,
-            promoTexto: document.getElementById('confPromoTexto').value
-        }).then(() => { alert("Configuración guardada 🚀"); location.reload(); });
-    }
-
-    function registrar() {
-        if(!numeroSeleccionado) return alert("Elige un número");
-        const n = document.getElementById('nombre').value, t = document.getElementById('telefono').value;
-        if(!n || !t) return alert("Faltan datos");
-        db.ref('rifas_activas/'+rifaActualID+'/participantes').push({nombre:n, tel:t, numero:numeroSeleccionado, pagado:false});
-        window.open(`https://wa.me/523310711283?text=Aparté el # ${numeroSeleccionado} para ${rifaActualID}. Nombre: ${n}`, '_blank');
-    }
-
     function volverInicio() { location.reload(); }
-    function accesoAdmin() { if(prompt("Pass:")==="1234") document.getElementById('adminPanel').style.display='block'; }
-    function toggleHistorial() { document.getElementById('pantallaInicio').style.display='none'; document.getElementById('historialSeccion').style.display='block'; }
-    function borrarSinHistorial() { if(confirm("¿Borrar?")) { db.ref('rifas_activas/'+rifaActualID).remove(); volverInicio(); } }
+    function accesoAdmin() { if(prompt("Contraseña:")==="1234") document.getElementById('adminPanel').style.display='block'; }
+    function borrarSinHistorial() { if(confirm("¿ELIMINAR TODO?")) { db.ref('rifas_activas/'+rifaActualID).remove(); volverInicio(); } }
 </script>
 </body>
 </html>
