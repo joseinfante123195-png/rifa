@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sorteos Pro</title>
+    <title>Sorteos Pro - Individual</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
@@ -26,6 +26,7 @@
         .historial-card { border: 1px solid #ddd; padding: 12px; border-radius: 10px; margin-bottom: 12px; background: white; }
         .historial-img { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-top: 8px; }
         .btn-back { background: #6c757d; color: white; border: none; margin-bottom: 12px; cursor: pointer; padding: 8px; width: auto; display: inline-block; font-size: 0.8em; }
+        .admin-box { background:#f8f9fa; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px; }
     </style>
 </head>
 <body>
@@ -42,7 +43,6 @@
     <img id="premioImgVer" src="" class="premio-img" onerror="this.src='https://via.placeholder.com/600x200?text=Foto+no+disponible'">
     <h2 id="tituloRifa" style="text-align: center; color: #007bff; margin: 0;"></h2>
     <p id="precioInfo" style="text-align: center; font-weight: bold; color: #28a745; margin: 5px 0;"></p>
-    <p id="disponiblesInfo" style="text-align: center; font-size: 0.8em; color: #666;"></p>
     
     <div id="userForm">
         <input type="text" id="nombre" placeholder="Tu nombre">
@@ -61,24 +61,29 @@
 <button onclick="accesoAdmin()" style="margin-top:50px; opacity: 0.05; border:none; background:none; width:100%;">⚙️ Admin</button>
 
 <div id="adminPanel" class="container">
-    <h2 style="color:red; text-align:center;">🛠️ ADMIN</h2>
-    <div style="background:#f8f9fa; padding:12px; border-radius:10px; border:1px solid #ddd;">
+    <h2 style="color:red; text-align:center;">🛠️ PANEL DE CONTROL</h2>
+    
+    <div class="admin-box">
+        <h4>1. Crear Nueva Rifa</h4>
         <input type="text" id="confTitulo" placeholder="Nombre (ej. iPhone 15)">
-        <input type="text" id="confFoto" placeholder="Link de la Foto">
+        <input type="text" id="confFoto" placeholder="Link de la Foto (Postimages)">
         <input type="number" id="confTotal" placeholder="Cantidad números">
         <input type="number" id="confPrecio" placeholder="Precio $">
-        <button onclick="guardarConfig()" style="background:#007bff; color:white;">PUBLICAR RIFA</button>
+        <button onclick="guardarConfig()" style="background:#007bff; color:white;">PUBLICAR NUEVA RIFA</button>
     </div>
 
-    <div style="background:#fffcf0; padding:12px; border-radius:10px; border:1px solid #ffc107; margin-top:15px;">
-        <p>Rifa Seleccionada: <b id="adminRifaNombre">-</b></p>
+    <div id="seccionGestionIndividual" class="admin-box" style="background:#fffcf0; border:1px solid #ffc107;">
+        <h4>2. Gestionar Rifa Seleccionada</h4>
+        <p>Rifa actual: <b id="adminRifaNombre">Ninguna seleccionada</b></p>
         <input type="text" id="histGanador" placeholder="Nombre del Ganador">
         <input type="text" id="histFoto" placeholder="Foto de Entrega">
         <button onclick="finalizarRifa()" style="background:orange; color:white;">CERRAR Y MANDAR A HISTORIAL</button>
         <hr>
-        <button onclick="borrarSinHistorial()" style="background:black; color:white;">❌ BORRAR POR COMPLETO (ERROR)</button>
+        <button onclick="borrarSinHistorial()" style="background:black; color:white;">❌ ELIMINAR ESTA RIFA (BORRADO TOTAL)</button>
     </div>
-    <div id="listaAdmin" style="margin-top:10px;"></div>
+
+    <h4>Participantes de la rifa seleccionada:</h4>
+    <div id="listaAdmin" style="font-size: 0.85em;"></div>
 </div>
 
 <script>
@@ -97,23 +102,34 @@
     const db = firebase.database();
     let rifaActualID = "", numeroSeleccionado = null, compradores = [], configRifa = { total: 0, precio: 0 };
 
+    // Cargar galería de rifas activas
     db.ref('rifas_activas').on('value', (snap) => {
         const grid = document.getElementById('gridRifasActivas');
         grid.innerHTML = '';
         const data = snap.val();
         if(!data) { grid.innerHTML = "<p>No hay rifas activas.</p>"; return; }
         for(let id in data) {
-            grid.innerHTML += `<div class="card-rifa" onclick="abrirRifa('${id}')"><img src="${data[id].config.foto}" class="card-rifa-img"><p class="card-rifa-txt">${id}</p></div>`;
+            grid.innerHTML += `
+                <div class="card-rifa" onclick="abrirRifa('${id}')">
+                    <img src="${data[id].config.foto}" class="card-rifa-img">
+                    <p class="card-rifa-txt">${id}</p>
+                </div>`;
         }
     });
 
+    // Cargar Historial Global
     db.ref('global_historial').on('value', (snap) => {
         const lista = document.getElementById('listaHistorial');
         lista.innerHTML = '';
         const data = snap.val();
         if(!data) { lista.innerHTML = "<p style='text-align:center;'>Aún no hay rifas finalizadas.</p>"; return; }
         for(let key in data) {
-            lista.innerHTML += `<div class="historial-card"><h3 style="margin:0;">🏆 ${data[key].premio}</h3><p>Ganador: <b>${data[key].ganador}</b></p><img src="${data[key].foto}" class="historial-img"></div>`;
+            lista.innerHTML += `
+                <div class="historial-card">
+                    <h3 style="margin:0;">🏆 ${data[key].premio}</h3>
+                    <p>Ganador: <b>${data[key].ganador}</b></p>
+                    <img src="${data[key].foto}" class="historial-img">
+                </div>`;
         }
     });
 
@@ -122,13 +138,17 @@
         document.getElementById('pantallaInicio').style.display = 'none';
         document.getElementById('rifaContenedor').style.display = 'block';
         document.getElementById('tituloRifa').innerText = id;
-        document.getElementById('adminRifaNombre').innerText = id;
+        document.getElementById('adminRifaNombre').innerText = id; // Actualiza el nombre en el panel admin
+
         db.ref('rifas_activas/'+id+'/config').on('value', snap => {
             configRifa = snap.val();
-            document.getElementById('premioImgVer').src = configRifa.foto;
-            document.getElementById('precioInfo').innerText = "Costo por boleto: $" + configRifa.precio;
-            dibujarTablero();
+            if(configRifa) {
+                document.getElementById('premioImgVer').src = configRifa.foto;
+                document.getElementById('precioInfo').innerText = "Costo: $" + configRifa.precio;
+                dibujarTablero();
+            }
         });
+
         db.ref('rifas_activas/'+id+'/participantes').on('value', snap => {
             compradores = [];
             const data = snap.val();
@@ -142,7 +162,6 @@
         const tablero = document.getElementById('tablero');
         tablero.innerHTML = '';
         const ocupados = compradores.map(c => parseInt(c.numero));
-        document.getElementById('disponiblesInfo').innerText = `Disponibles: ${configRifa.total - ocupados.length} de ${configRifa.total}`;
         for (let i = 1; i <= configRifa.total; i++) {
             const div = document.createElement('div');
             const esOcupado = ocupados.includes(i);
@@ -163,27 +182,9 @@
         const tel = document.getElementById('telefono').value;
         if(!nom || !tel) return alert("Faltan datos");
         db.ref('rifas_activas/'+rifaActualID+'/participantes').push({nombre: nom, tel: tel, numero: numeroSeleccionado, pagado: false});
-        alert("¡Número apartado!");
+        alert("¡Apartado!");
         document.getElementById('nombre').value=""; document.getElementById('telefono').value="";
         numeroSeleccionado = null;
-    }
-
-    function finalizarRifa() {
-        const gan = document.getElementById('histGanador').value;
-        const fot = document.getElementById('histFoto').value;
-        if(!gan || !fot) return alert("Pon el ganador y su foto");
-        db.ref('global_historial').push({premio: rifaActualID, ganador: gan, foto: fot});
-        db.ref('rifas_activas/'+rifaActualID).remove();
-        alert("¡Moviendo a historial!");
-        location.reload();
-    }
-
-    function borrarSinHistorial() {
-        if(confirm("¿Seguro? Se borrará TODO sin dejar rastro.")){
-            db.ref('rifas_activas/'+rifaActualID).remove();
-            alert("Rifa eliminada.");
-            location.reload();
-        }
     }
 
     function guardarConfig() {
@@ -193,21 +194,52 @@
         const p = document.getElementById('confPrecio').value;
         if(!tit || !fot || !t) return alert("Llena todos los campos");
         db.ref('rifas_activas/'+tit+'/config').set({total: parseInt(t), precio: parseInt(p), foto: fot});
-        alert("¡Publicada!");
+        alert("Rifa publicada correctamente.");
     }
 
-    function volverInicio() { location.reload(); }
+    function finalizarRifa() {
+        if(!rifaActualID) return alert("Primero selecciona una rifa del inicio");
+        const gan = document.getElementById('histGanador').value;
+        const fot = document.getElementById('histFoto').value;
+        if(!gan || !fot) return alert("Falta el nombre del ganador o la foto de evidencia");
+        
+        db.ref('global_historial').push({premio: rifaActualID, ganador: gan, foto: fot});
+        db.ref('rifas_activas/'+rifaActualID).remove();
+        alert("Rifa finalizada y movida al historial.");
+        volverInicio();
+    }
+
+    function borrarSinHistorial() {
+        if(!rifaActualID) return alert("Selecciona una rifa primero");
+        if(confirm(`¿Estás SEGURO de eliminar "${rifaActualID}"? Esto NO se guardará en el historial.`)){
+            db.ref('rifas_activas/'+rifaActualID).remove();
+            alert("Rifa eliminada definitivamente.");
+            volverInicio();
+        }
+    }
+
+    function volverInicio() {
+        document.getElementById('pantallaInicio').style.display='block';
+        document.getElementById('rifaContenedor').style.display='none';
+        document.getElementById('historialSeccion').style.display='none';
+        document.getElementById('adminPanel').style.display='none';
+        rifaActualID = "";
+    }
+
     function toggleHistorial() {
         document.getElementById('pantallaInicio').style.display='none';
         document.getElementById('historialSeccion').style.display='block';
     }
+
     function accesoAdmin() { if(prompt("Clave:") === "1234") document.getElementById('adminPanel').style.display='block'; }
 
     function actualizarUIAdmin() {
         const list = document.getElementById('listaAdmin');
-        list.innerHTML = '<table><tr><th>#</th><th>Nombre</th><th>Pagar</th></tr>';
-        compradores.forEach(u => {
-            list.innerHTML += `<tr><td>${u.numero}</td><td>${u.nombre}</td><td><button onclick="db.ref('rifas_activas/${rifaActualID}/participantes/${u.key}').update({pagado:true})">${u.pagado?'✅':'$'}</button></td></tr>`;
+        list.innerHTML = '<table style="width:100%"><tr><th>#</th><th>Nombre</th><th>Acción</th></tr>';
+        compradores.sort((a,b)=>a.numero-b.numero).forEach(u => {
+            list.innerHTML += `<tr><td>${u.numero}</td><td>${u.nombre}</td><td>
+                <button onclick="db.ref('rifas_activas/${rifaActualID}/participantes/${u.key}').update({pagado:true})" style="width:auto; padding:5px;">${u.pagado?'✅':'$'}</button>
+                <button onclick="db.ref('rifas_activas/${rifaActualID}/participantes/${u.key}').remove()" style="background:red; color:white; width:auto; padding:5px;">X</button></td></tr>`;
         });
         list.innerHTML += '</table>';
     }
