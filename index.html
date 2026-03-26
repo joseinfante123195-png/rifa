@@ -9,90 +9,96 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 
     <style>
-        :root { --gold: #f59e0b; --danger: #ef4444; --dark: #0f172a; --success: #22c55e; }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: white; margin: 0; padding: 10px; }
-        .container { max-width: 500px; margin: auto; background: #1e293b; border-radius: 28px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid #334155; }
+        :root { --gold: #d4af37; --gold-light: #f1d592; --dark-100: #0f172a; --dark-200: #1e293b; --danger: #ff4d4d; }
         
-        /* GANCHOS DE VENTA */
-        .promo-badge { background: var(--danger); color: white; font-weight: 900; padding: 5px 15px; border-radius: 50px; display: inline-block; font-size: 14px; animation: pulse 1s infinite; margin-bottom: 10px; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        
-        .timer-box { background: rgba(255,255,255,0.1); border: 1px dashed var(--gold); padding: 10px; border-radius: 15px; text-align: center; margin: 15px 0; }
-        .timer-text { font-size: 18px; font-weight: 800; color: var(--gold); }
+        body { background-color: var(--dark-100) !important; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 15px; }
+        .container { max-width: 550px; margin: auto; background: var(--dark-200); border-radius: 25px; padding: 20px; border: 1px solid #334155; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
 
-        /* RIFAS GRID */
-        .card-rifa { background: #334155; border-radius: 20px; overflow: hidden; margin-bottom: 20px; cursor: pointer; transition: 0.3s; position: relative; }
-        .card-rifa img { width: 100%; height: 220px; object-fit: cover; }
-        .card-body { padding: 15px; }
-        .price-tag { position: absolute; top: 15px; right: 15px; background: var(--success); padding: 5px 15px; border-radius: 50px; font-weight: 900; }
+        /* HEADER */
+        .header { text-align: center; padding: 20px 0; border-bottom: 1px solid #334155; margin-bottom: 20px; }
+        .header h1 { color: var(--gold); font-size: 28px; margin: 0; letter-spacing: 2px; text-shadow: 0 0 10px rgba(212,175,55,0.3); }
+
+        /* CARDS PRINCIPALES */
+        .grid-rifas { display: grid; gap: 20px; }
+        .card-rifa { background: #1e293b; border-radius: 20px; overflow: hidden; border: 1px solid #334155; position: relative; transition: 0.3s; cursor: pointer; }
+        .card-rifa:hover { border-color: var(--gold); transform: translateY(-5px); }
+        .card-rifa img { width: 100%; height: 250px; object-fit: cover; }
+        
+        /* BADGE PROMO DINÁMICO */
+        .promo-badge { position: absolute; top: 15px; left: 15px; background: var(--danger); color: white; padding: 6px 15px; border-radius: 50px; font-weight: 900; font-size: 13px; box-shadow: 0 0 15px rgba(255,77,77,0.5); z-index: 10; display: none; }
+
+        /* CONTADOR DE TIEMPO */
+        .timer-container { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 15px; border: 1px solid var(--gold); margin: 15px 0; text-align: center; }
+        .timer-label { font-size: 11px; color: #94a3b8; display: block; text-transform: uppercase; }
+        .timer-clock { font-size: 20px; font-weight: 900; color: var(--gold-light); }
 
         /* TABLERO */
-        .grid-numeros { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 8px; margin: 15px 0; max-height: 350px; overflow-y: auto; padding: 10px; background: #0f172a; border-radius: 15px; }
-        .numero { height: 50px; display: flex; align-items: center; justify-content: center; background: #334155; border-radius: 10px; font-weight: bold; cursor: pointer; border: 1px solid #475569; }
-        .numero.seleccionado { background: var(--gold) !important; color: black; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(245,158,11,0.4); }
-        .numero.ocupado { background: #1e293b !important; color: #475569 !important; opacity: 0.5; cursor: not-allowed; }
+        .grid-numeros { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 8px; margin: 15px 0; max-height: 350px; overflow-y: auto; padding: 10px; background: #0f172a; border-radius: 15px; border: 1px solid #334155; }
+        .numero { height: 50px; display: flex; align-items: center; justify-content: center; background: #334155; border-radius: 10px; font-weight: bold; border: 1px solid #475569; }
+        .numero.seleccionado { background: linear-gradient(135deg, var(--gold), #fbbf24) !important; color: black; border: none; transform: scale(1.1); box-shadow: 0 0 15px var(--gold); }
+        .numero.ocupado { opacity: 0.3; background: #0f172a !important; text-decoration: line-through; cursor: not-allowed; }
 
-        input { width: 100%; padding: 15px; border-radius: 12px; border: none; background: #334155; color: white; margin-bottom: 10px; font-size: 16px; }
-        button { border: none; padding: 18px; border-radius: 15px; font-weight: 900; width: 100%; cursor: pointer; font-size: 16px; text-transform: uppercase; }
-        .btn-main { background: linear-gradient(45deg, #f59e0b, #fbbf24); color: black; }
-        .btn-wa { background: #22c55e; color: white; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px; }
-
-        #rifaContenedor, #historialSeccion, #adminPanel { display: none; }
-        .admin-input { background: #eee !important; color: black !important; }
+        /* INPUTS Y BOTONES */
+        input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #475569; background: #0f172a; color: white; margin-bottom: 12px; font-size: 16px; box-sizing: border-box; }
+        .btn-gold { background: linear-gradient(45deg, var(--gold), #fbbf24); color: black; font-weight: 900; border: none; padding: 18px; border-radius: 15px; cursor: pointer; text-transform: uppercase; width: 100%; }
+        
+        #adminPanel { background: #f8fafc; color: #1e293b; display: none; margin-top: 50px; }
+        #adminPanel h2 { color: var(--dark-100); }
     </style>
 </head>
 <body>
 
 <div id="pantallaInicio" class="animate__animated animate__fadeIn">
-    <div style="text-align:center; padding: 20px;">
-        <h1 style="margin:0; font-size: 32px;">🍀 SORTEOS ELITE</h1>
-        <p style="color: #94a3b8;">¡Tu momento de suerte es hoy!</p>
+    <div class="header">
+        <h1>SORTEOS ELITE 🍀</h1>
+        <p style="color: #94a3b8; font-size: 12px;">EXCLUSIVIDAD Y SUERTE</p>
     </div>
-    <div id="gridRifasActivas"></div>
-    <button onclick="toggleHistorial()" style="background:none; color:#94a3b8; font-size:14px; text-decoration:underline;">📜 Historial de Ganadores</button>
+    <div id="gridRifasActivas" class="grid-rifas">Cargando...</div>
+    <button onclick="toggleHistorial()" style="background:none; color:#64748b; font-size:12px; margin-top:20px; text-decoration:underline; width:100%;">Ver Ganadores Pasados</button>
 </div>
 
-<div id="rifaContenedor" class="container animate__animated animate__slideInUp">
-    <button onclick="volverInicio()" style="width:auto; background:none; color:white; padding:0; margin-bottom:10px;">✕ Cerrar</button>
-    <div id="promoRifa" class="promo-badge">PROMO 🔥</div>
-    <img id="premioImgVer" src="" style="width:100%; border-radius:20px;">
-    <div class="timer-box">
-        <span class="timer-text">🚨 CIERRA EN: <span id="timerDías">5</span> DÍAS</span>
+<div id="rifaContenedor" class="container animate__animated animate__fadeInUp">
+    <button onclick="volverInicio()" style="background:none; color:#94a3b8; border:none; margin-bottom:15px; cursor:pointer;">← VOLVER</button>
+    
+    <div id="badgePromoVer" class="promo-badge animate__animated animate__pulse animate__infinite">OFERTA 🔥</div>
+    
+    <img id="premioImgVer" src="" style="width:100%; border-radius:20px; border: 2px solid var(--gold);">
+    
+    <div class="timer-container" id="contenedorTimer">
+        <span class="timer-label">⏳ TIEMPO RESTANTE:</span>
+        <span id="relojCalculado" class="timer-clock">00d 00h 00m</span>
     </div>
-    <h2 id="tituloRifa" style="margin:10px 0;"></h2>
-    <p id="precioInfo" style="color: var(--success); font-size: 24px; font-weight: 900; margin:0;"></p>
+
+    <h2 id="tituloRifa" style="margin:10px 0; color:var(--gold-light)"></h2>
+    <p id="precioInfo" style="font-size: 24px; font-weight: 900; margin:0; color:#22c55e;"></p>
     
     <div style="margin-top:20px;">
         <input type="text" id="nombre" placeholder="Nombre completo">
-        <input type="tel" id="telefono" placeholder="Número de WhatsApp">
-        <p style="font-size:12px; color:#94a3b8;">👇 Toca un número para elegirlo:</p>
+        <input type="tel" id="telefono" placeholder="WhatsApp">
         <div id="tablero" class="grid-numeros"></div>
-        <button onclick="registrar()" class="btn-main">¡LO QUIERO AHORA! 🚀</button>
+        <button onclick="registrar()" class="btn-gold">APARTAR MI NÚMERO 🚀</button>
     </div>
 </div>
 
-<button onclick="accesoAdmin()" style="opacity: 0.05; margin-top:50px; width:100%;">Admin</button>
-<div id="adminPanel" class="container" style="background:white; color:black;">
-    <h2 style="color:red">⚙️ PANEL MASTER</h2>
-    <div style="background:#f1f5f9; padding:15px; border-radius:15px;">
-        <h4>Crear/Editar Rifa</h4>
-        <input class="admin-input" type="text" id="confTitulo" placeholder="Título">
-        <input class="admin-input" type="text" id="confFoto" placeholder="Link Foto">
-        <input class="admin-input" type="number" id="confTotal" placeholder="Total Números">
-        <input class="admin-input" type="number" id="confPrecio" placeholder="Precio $">
-        <input class="admin-input" type="text" id="confPromo" placeholder="Texto Promo (ej: 20% OFF)">
-        <input class="admin-input" type="number" id="confDias" placeholder="Días para el cierre">
-        <button onclick="guardarConfig()" class="btn-main">PUBLICAR</button>
-    </div>
-    <div style="margin-top:20px; border-top:1px solid #ccc; padding-top:20px;">
-        <p>Gestionando: <b id="adminRifaNombre">-</b></p>
-        <button onclick="borrarSinHistorial()" style="background:black; color:white;">ELIMINAR ESTA RIFA</button>
-    </div>
-    <div id="listaAdmin"></div>
+<button onclick="accesoAdmin()" style="opacity: 0.05; margin-top:100px; width:100%;">ADMIN</button>
+<div id="adminPanel" class="container">
+    <h2>🛠 CONFIGURACIÓN DE RIFA</h2>
+    <input type="text" id="confTitulo" placeholder="Título (ej: Moto Z250)">
+    <input type="text" id="confFoto" placeholder="Link de Foto (Postimages)">
+    <input type="number" id="confTotal" placeholder="Total de números">
+    <input type="number" id="confPrecio" placeholder="Precio boleto $">
+    <input type="text" id="confPromo" placeholder="Texto Oferta (deja vacío si no hay)">
+    <label style="font-size:12px">Fecha del Sorteo:</label>
+    <input type="date" id="confFecha">
+    
+    <button onclick="guardarConfig()" class="btn-gold">PUBLICAR SORTEO</button>
+    <hr>
+    <p>Rifa seleccionada: <b id="adminRifaNombre">-</b></p>
+    <button onclick="borrarSinHistorial()" style="background:red; color:white; border:none; padding:10px; border-radius:10px;">BORRAR ESTA RIFA</button>
+    <div id="listaAdmin" style="margin-top:20px; color:black"></div>
 </div>
 
 <script>
-    // TU CONFIG DE FIREBASE (NO CAMBIAR)
     const firebaseConfig = {
         apiKey: "AIzaSyAchA8tvM4Hum-anybTex8nzLNxKa8yz_M",
         authDomain: "rifa01-6ff39.firebaseapp.com",
@@ -106,7 +112,7 @@
     
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    let rifaActualID = "", numeroSeleccionado = null, compradores = [], configRifa = {};
+    let rifaActualID = "", numeroSeleccionado = null, compradores = [], configRifa = {}, timerInterval;
 
     db.ref('rifas_activas').on('value', snap => {
         const grid = document.getElementById('gridRifasActivas');
@@ -114,13 +120,14 @@
         const data = snap.val();
         if(!data) return;
         for(let id in data) {
+            const promo = data[id].config.promo;
             grid.innerHTML += `
                 <div class="card-rifa animate__animated animate__fadeInUp" onclick="abrirRifa('${id}')">
-                    <div class="price-tag">$${data[id].config.precio}</div>
+                    ${promo ? `<div class="promo-badge" style="display:block">${promo} 🔥</div>` : ''}
                     <img src="${data[id].config.foto}">
-                    <div class="card-body">
-                        <span style="color:var(--gold); font-size:12px;">🍀 NUEVO SORTEO</span>
-                        <h3 style="margin:5px 0;">${id}</h3>
+                    <div style="padding:15px">
+                        <h3 style="margin:0; color:var(--gold-light)">${id}</h3>
+                        <p style="color:#22c55e; font-weight:900; margin:5px 0;">$${data[id].config.precio} MXN</p>
                     </div>
                 </div>`;
         }
@@ -135,9 +142,17 @@
             document.getElementById('tituloRifa').innerText = id;
             document.getElementById('adminRifaNombre').innerText = id;
             document.getElementById('premioImgVer').src = configRifa.foto;
-            document.getElementById('precioInfo').innerText = "$"+configRifa.precio + " MXN";
-            document.getElementById('promoRifa').innerText = configRifa.promo || "OFERTA 🔥";
-            document.getElementById('timerDías').innerText = configRifa.dias || "5";
+            document.getElementById('precioInfo').innerText = "$"+configRifa.precio;
+            
+            // LÓGICA DE PROMO
+            const badge = document.getElementById('badgePromoVer');
+            if(configRifa.promo) {
+                badge.innerText = configRifa.promo + " 🔥";
+                badge.style.display = "block";
+            } else { badge.style.display = "none"; }
+
+            // LÓGICA DE TIEMPO
+            iniciarContador(configRifa.fechaSorteo);
             dibujarTablero();
         });
         db.ref('rifas_activas/'+id+'/participantes').on('value', snap => {
@@ -146,6 +161,29 @@
             for(let k in d) compradores.push({key:k, ...d[k]});
             dibujarTablero();
         });
+    }
+
+    function iniciarContador(fechaFin) {
+        if(timerInterval) clearInterval(timerInterval);
+        const reloj = document.getElementById('relojCalculado');
+        
+        timerInterval = setInterval(() => {
+            const ahora = new Date().getTime();
+            const limite = new Date(fechaFin + "T23:59:59").getTime();
+            const distancia = limite - ahora;
+
+            if (distancia < 0) {
+                clearInterval(timerInterval);
+                reloj.innerText = "¡SORTEO EN CURSO! 🎰";
+                return;
+            }
+
+            const dias = Math.floor(distancia / (1000 * 60 * 60 * 24));
+            const horas = Math.floor((distancia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const mins = Math.floor((distancia % (1000 * 60 * 60)) / (1000 * 60));
+
+            reloj.innerText = `${dias}d ${horas}h ${mins}m`;
+        }, 1000);
     }
 
     function dibujarTablero() {
@@ -167,20 +205,15 @@
     }
 
     function registrar() {
-        if(!numeroSeleccionado) return alert("¡Elige tu número de la suerte primero! 🍀");
+        if(!numeroSeleccionado) return alert("Selecciona un número de la suerte 🍀");
         const n = document.getElementById('nombre').value;
         const t = document.getElementById('telefono').value;
-        if(!n || !t) return alert("Necesitamos tu nombre y WhatsApp para el premio");
+        if(!n || !t) return alert("Completa tus datos");
         
-        // GUARDAR EN BASE DE DATOS
         db.ref('rifas_activas/'+rifaActualID+'/participantes').push({nombre:n, tel:t, numero:numeroSeleccionado, pagado:false});
         
-        // AUTOMATIZAR WHATSAPP
-        const msg = `¡Hola! Acabo de apartar el número *${numeroSeleccionado}* para: *${rifaActualID}*. Mi nombre es *${n}*. ¿Cómo realizo el pago de $${configRifa.precio}?`;
-        const waLink = `https://wa.me/523310711283?text=${encodeURIComponent(msg)}`;
-        
-        alert("¡Apartado! Serás enviado a WhatsApp para confirmar.");
-        window.open(waLink, '_blank');
+        const msg = `¡Hola! Aparté el número *${numeroSeleccionado}* para *${rifaActualID}*. Mi nombre: *${n}*. ¿Cómo pago?`;
+        window.open(`https://wa.me/523310711283?text=${encodeURIComponent(msg)}`, '_blank');
         numeroSeleccionado = null;
     }
 
@@ -190,14 +223,19 @@
         const tot = document.getElementById('confTotal').value;
         const pre = document.getElementById('confPrecio').value;
         const pro = document.getElementById('confPromo').value;
-        const dia = document.getElementById('confDias').value;
-        db.ref('rifas_activas/'+tit+'/config').set({foto:fot, total:parseInt(tot), precio:parseInt(pre), promo:pro, dias:dia});
-        alert("¡Sorteo Lanzado! 🚀");
+        const fec = document.getElementById('confFecha').value;
+        
+        if(!tit || !fec) return alert("Pon al menos título y fecha");
+        
+        db.ref('rifas_activas/'+tit+'/config').set({
+            foto:fot, total:parseInt(tot), precio:parseInt(pre), promo:pro, fechaSorteo:fec
+        });
+        alert("Sorteo actualizado 🚀");
     }
 
     function volverInicio() { location.reload(); }
-    function accesoAdmin() { if(prompt("Contraseña:")==="1234") document.getElementById('adminPanel').style.display='block'; }
-    function borrarSinHistorial() { if(confirm("¿Borrar definitivamente?")) { db.ref('rifas_activas/'+rifaActualID).remove(); location.reload(); } }
+    function accesoAdmin() { if(prompt("Pass:")==="1234") document.getElementById('adminPanel').style.display='block'; }
+    function borrarSinHistorial() { if(confirm("¿Borrar?")) { db.ref('rifas_activas/'+rifaActualID).remove(); location.reload(); } }
 </script>
 </body>
 </html>
