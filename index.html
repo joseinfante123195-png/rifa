@@ -33,8 +33,6 @@
         .db-card h5 { margin: 0; font-size: 10px; text-transform: uppercase; color: #94a3b8; }
         .db-card p { margin: 5px 0 0 0; font-size: 16px; font-weight: bold; }
         .btn-random { background: rgba(212, 175, 55, 0.1); color: var(--gold); border: 2px solid var(--gold); padding: 12px; border-radius: 12px; font-weight: 900; width: 100%; margin: 10px 0; cursor: pointer; display: none; font-size: 14px; }
-        
-        /* Estilo para el nuevo botón de exportación */
         .btn-csv { background: #22c55e; color: white; font-weight: bold; border: none; padding: 10px; border-radius: 8px; width: 100%; margin-top: 10px; cursor: pointer; font-size: 12px; }
     </style>
 </head>
@@ -91,7 +89,6 @@
     
     <div class="admin-section" style="background: #f0fdf4; border: 2px solid #22c55e;">
         <h4 style="margin:0 0 5px 0; color: #166534;">📊 BASE DE DATOS</h4>
-        <p style="font-size: 10px; margin: 0 0 10px 0; color: #166534;">Descarga tu lista de clientes para marketing y cobranza.</p>
         <button onclick="exportarUsuariosCSV()" class="btn-csv">📥 DESCARGAR .CSV DE USUARIOS</button>
     </div>
 
@@ -198,44 +195,58 @@
         const modo = parseInt(configRifa.modoVenta || 1);
         const precio = configRifa.precio || 0;
         const perTel = {};
-        compradores.forEach(c => {
+        
+        compradores.sort((a,b) => a.numero - b.numero).forEach(c => {
             if(!perTel[c.tel]) perTel[c.tel] = { pagado: c.pagado, n: 0 };
             perTel[c.tel].n++;
-            cuerpo.innerHTML += `<tr><td>#${c.numero < 10 ? "0"+c.numero : c.numero}</td><td>${c.nombre.substring(0,6)}</td><td><button onclick="marcarPago('${c.id}', ${c.pagado})">${c.pagado?'SI':'NO'}</button></td><td><button onclick="borrarP('${c.id}')">🗑️</button></td></tr>`;
+            cuerpo.innerHTML += `<tr>
+                <td>#${c.numero < 10 ? "0"+c.numero : c.numero}</td>
+                <td>${c.nombre.substring(0,8)}</td>
+                <td><button onclick="marcarPago('${c.id}', ${c.pagado})" style="background:${c.pagado?'var(--success)':'var(--danger)'}; color:white; border:none; border-radius:4px; padding:2px 5px;">${c.pagado?'SI':'NO'}</button></td>
+                <td><button onclick="borrarP('${c.id}')" style="background:none; border:none; cursor:pointer;">🗑️</button></td>
+            </tr>`;
         });
-        let ing = 0; Object.values(perTel).forEach(p => { if(p.pagado) ing += (Math.floor(p.n/modo) * precio); });
+        
+        let ing = 0; 
+        let deuda = 0;
+        Object.values(perTel).forEach(p => { 
+            const monto = (Math.floor(p.n/modo) * precio);
+            if(p.pagado) ing += monto; 
+            else deuda += monto;
+        });
+
         document.getElementById('db-caja').innerText = "$" + ing.toLocaleString();
+        document.getElementById('db-deuda').innerText = "$" + deuda.toLocaleString();
+        document.getElementById('db-meta').innerText = "$" + (ing + deuda).toLocaleString();
         document.getElementById('db-vendidos').innerText = compradores.length;
     }
 
-    /* --- LÓGICA DE EXPORTACIÓN CSV (Agregado por experto en finanzas) --- */
+    /* --- NUEVAS FUNCIONES DE ADMINISTRADOR HABILITADAS --- */
+    function marcarPago(id, estadoActual) {
+        db.ref('rifas_activas/' + rifaActualID + '/participantes/' + id).update({ pagado: !estadoActual });
+    }
+
+    function borrarP(id) {
+        if(confirm("¿Liberar este número?")) {
+            db.ref('rifas_activas/' + rifaActualID + '/participantes/' + id).remove();
+        }
+    }
+
     function exportarUsuariosCSV() {
         if(compradores.length === 0) return alert("No hay datos para exportar");
-
-        // Agrupamos por teléfono para que un usuario no salga repetido 5 veces si compró 5 números
         const resumen = {};
         compradores.forEach(c => {
             const numStr = c.numero < 10 ? "0" + c.numero : c.numero;
-            if(!resumen[c.tel]) {
-                resumen[c.tel] = { nombre: c.nombre, numeros: [numStr] };
-            } else {
-                resumen[c.tel].numeros.push(numStr);
-            }
+            if(!resumen[c.tel]) resumen[c.tel] = { nombre: c.nombre, numeros: [numStr] };
+            else resumen[c.tel].numeros.push(numStr);
         });
-
-        let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // El \uFEFF es para que Excel lea bien los acentos
-        csvContent += "NOMBRE,TELEFONO,NUMEROS SELECCIONADOS\r\n";
-
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFFNOMBRE,TELEFONO,NUMEROS\r\n";
         for(let tel in resumen) {
-            const usuario = resumen[tel];
-            const fila = `"${usuario.nombre}","${tel}","${usuario.numeros.join(' - ')}"`;
-            csvContent += fila + "\r\n";
+            csvContent += `"${resumen[tel].nombre}","${tel}","${resumen[tel].numeros.join(' - ')}"\r\n`;
         }
-
-        const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `Comunidad_SorteosElite_${rifaActualID}.csv`);
+        link.setAttribute("href", encodeURI(csvContent));
+        link.setAttribute("download", `Base_Elite_${rifaActualID}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
