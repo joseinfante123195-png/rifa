@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sorteos Elite 🍀 - Urgencia Máxima</title>
+    <title>Sorteos Elite 🍀 - Seguridad Actualizada</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
@@ -13,11 +13,22 @@
         body { background-color: var(--dark-100) !important; color: #f8fafc; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; }
         .container { max-width: 600px; margin: auto; background: var(--dark-200); border-radius: 20px; padding: 15px; border: 1px solid #334155; }
         
-        /* BANNER Y CONTADOR DINÁMICO */
+        #btnAdminOculto { 
+            position: fixed; 
+            top: 0; 
+            right: 0; 
+            width: 60px; 
+            height: 60px; 
+            background: none; 
+            border: none; 
+            cursor: default; 
+            z-index: 9999; 
+            opacity: 0; 
+        }
+
         .promo-banner { background: rgba(0,0,0,0.3); border: 2px solid var(--gold); border-radius: 15px; padding: 12px; margin-bottom: 15px; text-align: center; display: none; transition: 0.3s; }
         .promo-timer { font-size: 22px; font-weight: 900; color: var(--gold-light); margin-top: 5px; }
         
-        /* ESTADO DE URGENCIA (Menos de 2 horas) */
         .urgencia-critica { border-color: var(--danger) !important; background: rgba(255, 77, 77, 0.1) !important; animation: pulseRed 1s infinite; }
         .urgencia-critica .promo-timer { color: var(--danger) !important; }
         @keyframes pulseRed { 0% { box-shadow: 0 0 0px var(--danger); } 50% { box-shadow: 0 0 15px var(--danger); } 100% { box-shadow: 0 0 0px var(--danger); } }
@@ -43,6 +54,8 @@
     </style>
 </head>
 <body>
+
+<button id="btnAdminOculto" onclick="accesoAdmin()"></button>
 
 <div id="pantallaInicio">
     <div style="text-align:center; padding: 15px;">
@@ -103,8 +116,6 @@
     <div class="admin-section"><h4>👥 PAGOS Y NÚMEROS</h4><div style="overflow-x:auto;"><table style="width:100%; font-size:10px; text-align:center;"><thead><tr><th>#</th><th>Nombre</th><th>Pago</th><th>X</th></tr></thead><tbody id="cuerpoTablaAdmin"></tbody></table></div></div>
     <div class="admin-section"><h4>🏆 FINALIZAR</h4><input type="number" id="winNum" placeholder="Número"><input type="text" id="winName" placeholder="Nombre"><input type="text" id="winEvidencias" placeholder="Fotos URLs (comas)"><button onclick="finalizarRifa()" class="btn-gold" style="background:var(--success); color:white;">PUBLICAR GANADOR ✅</button></div>
 </div>
-
-<button onclick="accesoAdmin()" style="opacity:0; position:fixed; bottom:0; left:0; width:100%; height:40px; border:none;"></button>
 
 <script>
     const firebaseConfig = {
@@ -177,11 +188,8 @@
             const ahora = new Date().getTime();
             const faltante = fin - ahora;
             if(faltante < 0) { clearInterval(timerInterval); banner.style.display = 'none'; return; }
-            
-            // Lógica de Urgencia (Menos de 2 horas = 7,200,000 ms)
             if(faltante < 7200000) banner.classList.add('urgencia-critica');
             else banner.classList.remove('urgencia-critica');
-
             const dias = Math.floor(faltante / (1000 * 60 * 60 * 24));
             const horas = Math.floor((faltante % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const mins = Math.floor((faltante % (1000 * 60 * 60)) / (1000 * 60));
@@ -256,7 +264,7 @@
             db.ref('historial_rifas/'+rifaActualID).set(data).then(() => { db.ref('rifas_activas/'+rifaActualID).remove(); volverInicio(); });
         });
     }
-    function accesoAdmin() { if(prompt("Clave:")==="1234") document.getElementById('adminPanel').style.display='block'; }
+    function accesoAdmin() { if(prompt("Clave:")==="rifa2369") document.getElementById('adminPanel').style.display='block'; }
     function volverInicio() { document.getElementById('rifaContenedor').style.display='none'; document.getElementById('adminPanel').style.display='none'; document.getElementById('pantallaInicio').style.display='block'; cargarLista(); }
     cargarLista();
 </script>
