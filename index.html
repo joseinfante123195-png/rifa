@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sorteos Elite 🍀 - Historial y Control</title>
+    <title>Sorteos Elite 🍀 - Selección Ilimitada</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
@@ -13,91 +13,77 @@
         body { background-color: var(--dark-100) !important; color: #f8fafc; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; }
         .container { max-width: 600px; margin: auto; background: var(--dark-200); border-radius: 20px; padding: 15px; border: 1px solid #334155; }
         
-        /* TABS */
+        /* TABS & CARDS */
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
-        .tab-btn { background: #1e293b; color: white; border: 1px solid var(--gold); padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+        .tab-btn { background: #1e293b; color: white; border: 1px solid var(--gold); padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 12px; transition: 0.3s; }
         .tab-btn.active { background: var(--gold); color: black; font-weight: bold; }
-
-        /* CARDS */
         .card-rifa { background:#1e293b; border-radius:15px; overflow:hidden; border:1px solid #334155; display:flex; align-items:center; padding:12px; cursor:pointer; margin-bottom: 10px; }
-        .card-ganador { border: 2px solid var(--success); position: relative; }
-        .badge-ganador { position: absolute; top: 5px; right: 10px; background: var(--success); color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
 
-        /* DASHBOARD MASTER */
-        .db-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .db-card { background: #0f172a; padding: 10px; border-radius: 12px; border-top: 3px solid var(--gold); text-align: center; }
+        /* TABLERO MULTISELECCIÓN */
+        .grid-numeros { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 6px; max-height: 350px; overflow-y: auto; padding: 12px; background: #0f172a; border-radius: 12px; border: 1px solid #334155; }
+        .numero { height: 42px; display: flex; align-items: center; justify-content: center; background: #334155; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; border: 1px solid #475569; font-size: 14px; }
+        .numero.ocupado { opacity: 0.1; background: black !important; pointer-events: none; border-color: transparent; }
+        .numero.seleccionado { background: var(--gold) !important; color: black !important; box-shadow: 0 0 15px var(--gold); transform: scale(1.08); border-color: white; z-index: 5; }
+
+        /* UI ELEMENTS */
+        .resumen-seleccion { background: rgba(212, 175, 55, 0.08); padding: 12px; border-radius: 12px; border: 1px dashed var(--gold); margin-bottom: 12px; text-align: center; font-size: 14px; min-height: 40px; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        input { padding: 12px; border-radius: 10px; border: 1px solid #334155; width: 100%; box-sizing: border-box; margin-bottom: 12px; background: #0f172a; color: white; font-size: 14px; }
+        .btn-gold { background: linear-gradient(45deg, var(--gold), #fbbf24); color: black; font-weight: 900; border: none; padding: 16px; border-radius: 12px; cursor: pointer; width: 100%; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* GRID NÚMEROS */
-        .grid-numeros { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 5px; max-height: 200px; overflow-y: auto; padding: 10px; background: #0f172a; border-radius: 10px; }
-        .numero { height: 35px; display: flex; align-items: center; justify-content: center; background: #334155; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; }
-        .numero.ocupado { opacity: 0.15; background: black; pointer-events: none; }
-        .numero.seleccionado { background: var(--gold); color: black; box-shadow: 0 0 10px var(--gold); }
-
-        .btn-gold { background: linear-gradient(45deg, var(--gold), #fbbf24); color: black; font-weight: 900; border: none; padding: 12px; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 10px; }
-        .admin-section { background: white; color: #1e293b; padding: 15px; border-radius: 15px; margin-top: 15px; }
-        input { padding: 8px; border-radius: 5px; border: 1px solid #ccc; width: 100%; box-sizing: border-box; margin-top: 5px; }
+        /* SCROLLBAR */
+        .grid-numeros::-webkit-scrollbar { width: 5px; }
+        .grid-numeros::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <div id="pantallaInicio">
-    <div style="text-align:center; padding: 20px;">
-        <h1 style="color:var(--gold); margin:0;">SORTEOS ELITE 🍀</h1>
+    <div style="text-align:center; padding: 25px 15px;">
+        <h1 style="color:var(--gold); margin:0; letter-spacing: 2px;">SORTEOS ELITE 🍀</h1>
+        <p style="font-size: 11px; color: #94a3b8; text-transform: uppercase; margin-top: 5px;">Transparencia y honestidad</p>
     </div>
 
     <div class="tabs">
-        <button class="tab-btn active" onclick="cambiarTab('activas')">RIFAS ACTIVAS</button>
-        <button class="tab-btn" onclick="cambiarTab('historial')">HISTORIAL GANADORES</button>
+        <button class="tab-btn active" onclick="cambiarTab('activas', event)">RIFAS EN CURSO</button>
+        <button class="tab-btn" onclick="cambiarTab('historial', event)">GANADORES</button>
     </div>
 
-    <div id="listaRifas" style="padding: 10px;"></div>
+    <div id="listaRifas" style="padding: 0 10px;"></div>
 </div>
 
 <div id="rifaContenedor" class="container animate__animated animate__fadeIn" style="display:none;">
-    <button onclick="volverInicio()" style="background:none; color:#94a3b8; border:none; cursor:pointer;">✕ VOLVER</button>
+    <button onclick="volverInicio()" style="background:none; color:#94a3b8; border:none; cursor:pointer; margin-bottom:15px; font-weight: bold;">← VOLVER AL MENÚ</button>
     
     <div id="contenidoRifa">
-        <img id="premioImgVer" src="" style="width:100%; border-radius:12px; margin-top:10px;">
-        <h2 id="tituloRifa" style="text-align:center; color:var(--gold-light);"></h2>
-        <p id="precioInfo" style="text-align:center; font-size:24px; color:var(--success); font-weight:900;"></p>
+        <img id="premioImgVer" src="" style="width:100%; border-radius:15px; aspect-ratio: 16/9; object-fit: cover; border: 2px solid var(--gold);">
+        <h2 id="tituloRifa" style="text-align:center; color:var(--gold-light); margin: 15px 0;"></h2>
         
         <div id="seccionCompra">
-            <input type="text" id="nombre" placeholder="Nombre completo" style="background:#0f172a; color:white; border:none; margin-bottom:10px;">
-            <input type="tel" id="telefono" placeholder="WhatsApp" style="background:#0f172a; color:white; border:none; margin-bottom:10px;">
+            <div id="resumenSeleccion" class="resumen-seleccion">
+                <span>Toca los números que quieras comprar 👇</span>
+            </div>
+
+            <input type="text" id="nombre" placeholder="Nombre completo">
+            <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)">
+            
             <div id="tablero" class="grid-numeros"></div>
-            <button onclick="registrar()" class="btn-gold">RESERVAR NÚMERO 🚀</button>
+            
+            <button onclick="registrarPro()" class="btn-gold">CONFIRMAR MI APARTADO 🚀</button>
         </div>
 
-        <div id="seccionHistorial" style="display:none; text-align:center; border-top: 1px solid var(--gold); margin-top:20px; padding-top:15px;">
-            <h3 style="color:var(--success)">🏆 GANADOR: <span id="txtGanador"></span></h3>
-            <p>Boleto premiado: <b id="txtNumGanador"></b></p>
-            <div id="evidenciasEntrega" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:15px;"></div>
+        <div id="seccionHistorial" style="display:none; text-align:center; border-top: 2px solid var(--gold); margin-top:25px; padding-top:20px;">
+            <h3 style="color:var(--success); margin:0;">🏆 ¡GANADOR CONFIRMADO!</h3>
+            <p style="margin: 5px 0;">Afortunado: <span id="txtGanador" style="font-weight:900; color:white;"></span></p>
+            <div style="background: var(--gold); color: black; display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: 900; font-size: 22px; margin: 10px 0;">
+                #<span id="txtNumGanador"></span>
+            </div>
+            <div id="evidenciasEntrega" style="margin-top:20px;"></div>
         </div>
     </div>
 </div>
-
-<div id="adminPanel" class="container" style="display:none; margin-top:20px; background: #f8fafc; color: #1e293b;">
-    <h3>⚙️ GESTIÓN DE RIFA</h3>
-    
-    <div class="admin-section" style="border: 2px solid var(--gold);">
-        <h4 style="margin:0">🏆 FINALIZAR Y DECLARAR GANADOR</h4>
-        <input type="number" id="winNum" placeholder="Número ganador">
-        <input type="text" id="winName" placeholder="Nombre del ganador">
-        <input type="text" id="winEvidencias" placeholder="URLs fotos entrega (sep. por comas)">
-        <button onclick="finalizarRifa()" class="btn-gold" style="background: var(--success); color:white;">MOVER A HISTORIAL ✅</button>
-    </div>
-
-    <div class="admin-section">
-        <h4>👥 PARTICIPANTES</h4>
-        <table style="width:100%; font-size:12px;">
-            <tbody id="cuerpoTablaAdmin"></tbody>
-        </table>
-    </div>
-</div>
-
-<button onclick="accesoAdmin()" style="opacity:0.01; position:fixed; bottom:0; width:100%; height:30px;">.</button>
 
 <script>
+    // Configuración Firebase (Se mantiene tu conexión actual)
     const firebaseConfig = {
         apiKey: "AIzaSyAchA8tvM4Hum-anybTex8nzLNxKa8yz_M",
         authDomain: "rifa01-6ff39.firebaseapp.com",
@@ -111,12 +97,12 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    let rifaActualID = "", numeroSeleccionado = null, compradores = [], configRifa = {}, vistaActiva = 'activas';
+    let rifaActualID = "", seleccionados = [], compradores = [], configRifa = {}, vistaActiva = 'activas';
 
-    function cambiarTab(tab) {
+    function cambiarTab(tab, e) {
         vistaActiva = tab;
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        event.target.classList.add('active');
+        e.target.classList.add('active');
         cargarLista();
     }
 
@@ -126,19 +112,19 @@
             const container = document.getElementById('listaRifas');
             container.innerHTML = '';
             const data = snap.val();
-            if(!data) { container.innerHTML = '<p style="text-align:center">No hay registros.</p>'; return; }
+            if(!data) { container.innerHTML = '<p style="text-align:center; color:#666; padding: 40px;">No hay registros por el momento.</p>'; return; }
             
             for(let id in data) {
                 const r = data[id];
-                const esHistorial = vistaActiva === 'historial';
                 container.innerHTML += `
-                    <div class="card-rifa ${esHistorial ? 'card-ganador' : ''}" onclick="abrirRifa('${id}', '${vistaActiva}')">
-                        <img src="${r.config.foto}" style="width:60px; height:60px; border-radius:8px; object-fit:cover;">
+                    <div class="card-rifa" onclick="abrirRifa('${id}', '${vistaActiva}')">
+                        <img src="${r.config.foto}" style="width:75px; height:75px; border-radius:12px; object-fit:cover; border: 1px solid #444;">
                         <div style="margin-left:15px;">
-                            <h4 style="margin:0; color:var(--gold)">${id}</h4>
-                            <small>${esHistorial ? 'Ganador: ' + r.ganador.nombre : '$' + r.config.precio}</small>
+                            <h4 style="margin:0; color:var(--gold); font-size:18px;">${id}</h4>
+                            <small style="color:${vistaActiva==='activas'?'#22c55e':'#94a3b8'}; font-weight: bold;">
+                                ${vistaActiva === 'activas' ? '$' + r.config.precio + ' MXN por boleto' : 'Ganador: ' + r.ganador.nombre}
+                            </small>
                         </div>
-                        ${esHistorial ? '<span class="badge-ganador">ENTREGADO</span>' : ''}
                     </div>`;
             }
         });
@@ -146,99 +132,125 @@
 
     function abrirRifa(id, tipo) {
         rifaActualID = id;
+        seleccionados = [];
         document.getElementById('pantallaInicio').style.display = 'none';
         document.getElementById('rifaContenedor').style.display = 'block';
         
-        db.ref((tipo === 'activas' ? 'rifas_activas/' : 'historial_rifas/') + id).once('value', snap => {
+        db.ref((tipo === 'activas' ? 'rifas_activas/' : 'historial_rifas/') + id).on('value', snap => {
             const data = snap.val();
+            if(!data) return;
             configRifa = data.config;
             compradores = data.participantes ? Object.entries(data.participantes).map(([k,v]) => ({id:k, ...v})) : [];
 
             document.getElementById('tituloRifa').innerText = id;
             document.getElementById('premioImgVer').src = configRifa.foto;
-            document.getElementById('precioInfo').innerText = tipo === 'activas' ? "$"+configRifa.precio : "RIFA FINALIZADA";
             
             if(tipo === 'activas') {
                 document.getElementById('seccionCompra').style.display = 'block';
                 document.getElementById('seccionHistorial').style.display = 'none';
                 dibujarTablero();
-                actualizarAdminTable();
+                actualizarResumen();
             } else {
                 document.getElementById('seccionCompra').style.display = 'none';
                 document.getElementById('seccionHistorial').style.display = 'block';
                 document.getElementById('txtGanador').innerText = data.ganador.nombre;
                 document.getElementById('txtNumGanador').innerText = data.ganador.numero;
-                
                 const eviDiv = document.getElementById('evidenciasEntrega');
                 eviDiv.innerHTML = '';
                 if(data.ganador.fotos) {
                     data.ganador.fotos.split(',').forEach(url => {
-                        eviDiv.innerHTML += `<img src="${url.trim()}" style="width:100%; border-radius:8px; border:1px solid #444;">`;
+                        eviDiv.innerHTML += `<img src="${url.trim()}" style="width:100%; border-radius:15px; border: 1px solid var(--gold); margin-bottom:12px;">`;
                     });
                 }
             }
         });
     }
 
-    function finalizarRifa() {
-        const num = document.getElementById('winNum').value;
-        const nom = document.getElementById('winName').value;
-        const fotos = document.getElementById('winEvidencias').value;
-
-        if(!num || !nom) return alert("Pon el número y nombre del ganador");
-
-        db.ref('rifas_activas/' + rifaActualID).once('value', snap => {
-            const data = snap.val();
-            data.ganador = { numero: num, nombre: nom, fotos: fotos, fechaFin: new Date().getTime() };
-            
-            // 1. Guardar en historial
-            db.ref('historial_rifas/' + rifaActualID).set(data).then(() => {
-                // 2. Borrar de activas
-                db.ref('rifas_activas/' + rifaActualID).remove();
-                alert("🏆 Rifa movida al historial de ganadores");
-                volverInicio();
-            });
-        });
-    }
-
-    // Funciones base del tablero y registro (igual que antes)
     function dibujarTablero() {
-        const tab = document.getElementById('tablero'); tab.innerHTML = '';
+        const tab = document.getElementById('tablero'); 
+        tab.innerHTML = '';
         const ocupados = compradores.map(c => parseInt(c.numero));
-        for(let i=1; i<=(configRifa.total || 100); i++) {
+        const total = configRifa.total || 100;
+
+        for(let i=1; i<=total; i++) {
             const div = document.createElement('div');
             const ocu = ocupados.includes(i);
-            div.className = 'numero' + (ocu ? ' ocupado':'');
+            const sel = seleccionados.includes(i);
+            
+            div.className = 'numero' + (ocu ? ' ocupado' : (sel ? ' seleccionado' : ''));
             div.innerText = i;
-            if(!ocu) div.onclick = () => {
-                document.querySelectorAll('.numero').forEach(n => n.classList.remove('seleccionado'));
-                div.classList.add('seleccionado');
-                numeroSeleccionado = i;
-            };
+            
+            if(!ocu) {
+                div.onclick = () => {
+                    if(seleccionados.includes(i)) {
+                        seleccionados = seleccionados.filter(n => n !== i);
+                    } else {
+                        seleccionados.push(i);
+                    }
+                    actualizarResumen();
+                    dibujarTablero(); 
+                };
+            }
             tab.appendChild(div);
         }
     }
 
-    function registrar() {
-        if(!numeroSeleccionado) return alert("Selecciona número");
-        const n = document.getElementById('nombre').value, t = document.getElementById('telefono').value;
-        if(!n || !t) return alert("Faltan datos");
-        db.ref('rifas_activas/'+rifaActualID+'/participantes').push({
-            nombre:n, tel:t, numero:numeroSeleccionado, pagado:false, fechaRegistro: new Date().getTime()
-        });
-        window.open(`https://wa.me/523310711283?text=Aparté el ${numeroSeleccionado} para ${rifaActualID}`, '_blank');
-        numeroSeleccionado = null;
+    function actualizarResumen() {
+        const res = document.getElementById('resumenSeleccion');
+        if(seleccionados.length === 0) {
+            res.innerHTML = "<span>Toca los números que quieras comprar 👇</span>";
+        } else {
+            res.innerHTML = `
+                <span style="font-size:11px; color:var(--gold)">NÚMEROS ELEGIDOS:</span>
+                <b style="font-size:16px;">${seleccionados.sort((a,b)=>a-b).join(' - ')}</b>
+                <span style="color:var(--success); font-weight:bold; margin-top:5px;">Total: $${seleccionados.length * configRifa.precio} MXN</span>
+            `;
+        }
     }
 
-    function actualizarAdminTable() {
-        const cuerpo = document.getElementById('cuerpoTablaAdmin'); cuerpo.innerHTML = '';
-        compradores.forEach(c => {
-            cuerpo.innerHTML += `<tr><td>#${c.numero}</td><td>${c.nombre}</td><td>${c.pagado?'PAGADO':'PEND'}</td></tr>`;
+    async function registrarPro() {
+        const n = document.getElementById('nombre').value;
+        const t = document.getElementById('telefono').value;
+        if(seleccionados.length === 0) return alert("⚠️ Selecciona al menos un número del tablero.");
+        if(!n || t.length < 10) return alert("⚠️ Ingresa tu nombre y WhatsApp a 10 dígitos.");
+
+        // CONSULTA DE ÚLTIMO MOMENTO PARA EVITAR DUPLICADOS
+        const snap = await db.ref('rifas_activas/' + rifaActualID + '/participantes').get();
+        const dataActual = snap.val() ? Object.values(snap.val()) : [];
+        const ocupadosReales = dataActual.map(p => parseInt(p.numero));
+
+        for(let num of seleccionados) {
+            if(ocupadosReales.includes(num)) {
+                alert(`¡LO SENTIMOS! El número #${num} ya fue ocupado por otro usuario hace un momento. Por favor, desmárcalo e intenta con otros.`);
+                return; // Bloquea la transacción completa si un número falló
+            }
+        }
+
+        // SI TODO ESTÁ DISPONIBLE, GUARDAR TODOS LOS BOLETOS
+        const registros = seleccionados.map(num => {
+            return db.ref('rifas_activas/' + rifaActualID + '/participantes').push({
+                nombre: n, tel: t, numero: num, pagado: false, fechaRegistro: new Date().getTime()
+            });
         });
+
+        await Promise.all(registros);
+
+        // Envío a WhatsApp con resumen claro
+        const listaNumeros = seleccionados.sort((a,b)=>a-b).join(', ');
+        const totalPagar = seleccionados.length * configRifa.precio;
+        const msg = `¡Hola José! Acabo de apartar ${seleccionados.length} boletos para la rifa *${rifaActualID}*.\n\n✅ Mis números: *${listaNumeros}*\n💰 Total a pagar: *$${totalPagar} MXN*\n👤 Nombre: ${n}\n\n¿Me pasas los datos de pago por favor?`;
+        
+        window.open(`https://wa.me/523310711283?text=${encodeURIComponent(msg)}`, '_blank');
+        
+        seleccionados = [];
+        volverInicio();
     }
 
-    function accesoAdmin() { if(prompt("Contraseña:")==="1234") document.getElementById('adminPanel').style.display='block'; }
-    function volverInicio() { document.getElementById('rifaContenedor').style.display='none'; document.getElementById('adminPanel').style.display='none'; document.getElementById('pantallaInicio').style.display='block'; cargarLista(); }
+    function volverInicio() {
+        document.getElementById('rifaContenedor').style.display = 'none';
+        document.getElementById('pantallaInicio').style.display = 'block';
+        cargarLista();
+    }
 
     cargarLista();
 </script>
