@@ -9,7 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 
     <style>
-        :root { --gold: #d4af37; --gold-light: #f1d592; --dark-100: #0f172a; --dark-200: #1e293b; --success: #22c55e; --danger: #ff4d4d; }
+        :root { --gold: #d4af37; --gold-light: #f1d592; --dark-100: #0f172a; --dark-200: #1e293b; --success: #22c55e; --danger: #ff4d4d; --info: #3b82f6; }
         body { background-color: var(--dark-100) !important; color: #f8fafc; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; }
         .container { max-width: 600px; margin: auto; background: var(--dark-200); border-radius: 20px; padding: 15px; border: 1px solid #334155; }
         
@@ -51,6 +51,15 @@
         input { padding: 10px; border-radius: 8px; border: 1px solid #ccc; width: 100%; margin-bottom: 10px; }
         .btn-gold { background: linear-gradient(45deg, var(--gold), #fbbf24); color: black; font-weight: 900; border: none; padding: 12px; border-radius: 10px; cursor: pointer; width: 100%; }
         .check-container { display: flex; align-items: center; gap: 8px; margin: 10px 0; font-size: 12px; color: #94a3b8; }
+
+        /* NUEVOS ESTILOS DASHBOARD FINANCIERO */
+        .db-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .db-card { background: #1e293b; color: white; padding: 10px; border-radius: 12px; border-left: 4px solid var(--gold); }
+        .db-card h5 { margin: 0; font-size: 10px; text-transform: uppercase; color: #94a3b8; }
+        .db-card p { margin: 5px 0 0 0; font-size: 16px; font-weight: bold; }
+        .card-caja { border-left-color: var(--success); }
+        .card-deuda { border-left-color: var(--danger); }
+        .card-meta { border-left-color: var(--info); }
     </style>
 </head>
 <body>
@@ -105,6 +114,30 @@
 
 <div id="adminPanel" class="container">
     <h3 style="text-align:center;">⚙️ PANEL ELITE</h3>
+    
+    <div class="admin-section" style="background: #0f172a; border: 1px solid var(--gold);">
+        <h4 style="color: var(--gold); margin-top: 0; font-size: 14px; text-align: center;">📊 ESTADO FINANCIERO REAL</h4>
+        <div class="db-grid">
+            <div class="db-card">
+                <h5>Vendidos</h5>
+                <p id="db-vendidos">0</p>
+            </div>
+            <div class="db-card card-meta">
+                <h5>Meta Total</h5>
+                <p id="db-meta">$0</p>
+            </div>
+            <div class="db-card card-caja">
+                <h5>En Caja</h5>
+                <p id="db-caja">$0</p>
+            </div>
+            <div class="db-card card-deuda">
+                <h5>Por Cobrar</h5>
+                <p id="db-deuda">$0</p>
+            </div>
+        </div>
+        <p style="font-size: 9px; color: #94a3b8; margin: 0; text-align: center;">* Cálculos basados en el precio configurado por boleto.</p>
+    </div>
+
     <div class="admin-section" style="background: #fff5f5; border: 2px solid var(--danger);">
         <h4 style="margin:0 0 10px 0;">🔥 PROMO Y RELOJ</h4>
         <input type="text" id="promoTexto" placeholder="Mensaje: Ej. ¡2x1 HOY!">
@@ -239,9 +272,23 @@
 
     function actualizarAdmin() {
         const cuerpo = document.getElementById('cuerpoTablaAdmin'); cuerpo.innerHTML = '';
+        
+        // LÓGICA DE DASHBOARD FINANCIERO
+        const precioBoleto = configRifa.precio || 0;
+        const totalBoletos = configRifa.total || 0;
+        let pagadosCont = 0;
+        let deudaCont = 0;
+
         compradores.sort((a,b)=>a.numero-b.numero).forEach(c => {
+            if(c.pagado) pagadosCont++; else deudaCont++;
             cuerpo.innerHTML += `<tr><td>#${c.numero}</td><td>${c.nombre.substring(0,6)}</td><td><button style="background:${c.pagado?'#22c55e':'#f59e0b'}; color:white; border:none; padding:2px 5px; border-radius:4px;" onclick="marcarPago('${c.id}', ${c.pagado})">${c.pagado?'SI':'NO'}</button></td><td><button onclick="borrarP('${c.id}')" style="border:none; background:none;">🗑️</button></td></tr>`;
         });
+
+        // Actualizar números en Dashboard
+        document.getElementById('db-vendidos').innerText = compradores.length;
+        document.getElementById('db-meta').innerText = "$" + (totalBoletos * precioBoleto).toLocaleString();
+        document.getElementById('db-caja').innerText = "$" + (pagadosCont * precioBoleto).toLocaleString();
+        document.getElementById('db-deuda').innerText = "$" + (deudaCont * precioBoleto).toLocaleString();
     }
 
     function guardarPromo() { db.ref('rifas_activas/'+rifaActualID+'/config/promo').set({ texto: document.getElementById('promoTexto').value, fin: document.getElementById('promoFecha').value }).then(()=>alert("Promo activada")); }
