@@ -33,6 +33,9 @@
         .db-card h5 { margin: 0; font-size: 10px; text-transform: uppercase; color: #94a3b8; }
         .db-card p { margin: 5px 0 0 0; font-size: 16px; font-weight: bold; }
         .btn-random { background: rgba(212, 175, 55, 0.1); color: var(--gold); border: 2px solid var(--gold); padding: 12px; border-radius: 12px; font-weight: 900; width: 100%; margin: 10px 0; cursor: pointer; display: none; font-size: 14px; }
+        
+        /* Estilo para el nuevo botón de exportación */
+        .btn-csv { background: #22c55e; color: white; font-weight: bold; border: none; padding: 10px; border-radius: 8px; width: 100%; margin-top: 10px; cursor: pointer; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -85,6 +88,13 @@
             <div class="db-card" style="border-left-color: var(--danger);"><h5>Por Cobrar</h5><p id="db-deuda">$0</p></div>
         </div>
     </div>
+    
+    <div class="admin-section" style="background: #f0fdf4; border: 2px solid #22c55e;">
+        <h4 style="margin:0 0 5px 0; color: #166534;">📊 BASE DE DATOS</h4>
+        <p style="font-size: 10px; margin: 0 0 10px 0; color: #166534;">Descarga tu lista de clientes para marketing y cobranza.</p>
+        <button onclick="exportarUsuariosCSV()" class="btn-csv">📥 DESCARGAR .CSV DE USUARIOS</button>
+    </div>
+
     <div class="admin-section" style="background: #eef2ff; border: 2px solid var(--info);">
         <h4 style="margin:0 0 10px 0;">🎯 MODO DE VENTA</h4>
         <select id="configModoVenta">
@@ -140,7 +150,6 @@
         const btnAzar = document.getElementById('btnAzar');
         btnAzar.style.display = (seleccionados.length > 0 && seleccionados.length % modo !== 0) ? 'block' : 'none';
 
-        // LÓGICA 00: Inicia en 0 y termina en total-1
         const totalMax = configRifa.total || 100;
         for(let i=0; i < totalMax; i++) {
             const numFormateado = i < 10 ? "0" + i : i;
@@ -175,7 +184,6 @@
         if(seleccionados.length === 0 || !n || t.length < 10) return alert("Completa tus datos");
         if(seleccionados.length % modo !== 0) return alert(`Completa el combo de ${modo}`);
         
-        // MENSAJE DE WHATSAPP PERSONALIZADO
         const numTxt = seleccionados.map(n => n < 10 ? "0"+n : n).join(', ');
         let msj = `¡Hola! Aparté mis números: ${numTxt} para ${rifaActualID}. Soy ${n}.`;
         if(modo > 1) msj = `¡Hola! Aparté mi *COMBO ELITE* (${modo} números) por el precio de 1. Mis números son: ${numTxt}. Soy ${n}.`;
@@ -198,6 +206,39 @@
         let ing = 0; Object.values(perTel).forEach(p => { if(p.pagado) ing += (Math.floor(p.n/modo) * precio); });
         document.getElementById('db-caja').innerText = "$" + ing.toLocaleString();
         document.getElementById('db-vendidos').innerText = compradores.length;
+    }
+
+    /* --- LÓGICA DE EXPORTACIÓN CSV (Agregado por experto en finanzas) --- */
+    function exportarUsuariosCSV() {
+        if(compradores.length === 0) return alert("No hay datos para exportar");
+
+        // Agrupamos por teléfono para que un usuario no salga repetido 5 veces si compró 5 números
+        const resumen = {};
+        compradores.forEach(c => {
+            const numStr = c.numero < 10 ? "0" + c.numero : c.numero;
+            if(!resumen[c.tel]) {
+                resumen[c.tel] = { nombre: c.nombre, numeros: [numStr] };
+            } else {
+                resumen[c.tel].numeros.push(numStr);
+            }
+        });
+
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // El \uFEFF es para que Excel lea bien los acentos
+        csvContent += "NOMBRE,TELEFONO,NUMEROS SELECCIONADOS\r\n";
+
+        for(let tel in resumen) {
+            const usuario = resumen[tel];
+            const fila = `"${usuario.nombre}","${tel}","${usuario.numeros.join(' - ')}"`;
+            csvContent += fila + "\r\n";
+        }
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `Comunidad_SorteosElite_${rifaActualID}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     function guardarModoVenta() { db.ref('rifas_activas/'+rifaActualID+'/config/modoVenta').set(document.getElementById('configModoVenta').value).then(()=>alert("Modo actualizado")); }
