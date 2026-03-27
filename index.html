@@ -3,116 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sorteos Elite 🍀 - Control Total</title>
+    <title>Sorteos Elite 🍀 - Urgencia Máxima</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 
     <style>
-        :root { --gold: #d4af37; --gold-light: #f1d592; --dark-100: #0f172a; --dark-200: #1e293b; --danger: #ff4d4d; --success: #22c55e; --warning: #f59e0b; }
+        :root { --gold: #d4af37; --gold-light: #f1d592; --dark-100: #0f172a; --dark-200: #1e293b; --success: #22c55e; --danger: #ff4d4d; }
         body { background-color: var(--dark-100) !important; color: #f8fafc; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; }
         .container { max-width: 600px; margin: auto; background: var(--dark-200); border-radius: 20px; padding: 15px; border: 1px solid #334155; }
         
-        /* TABS & NAVIGATION */
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
-        .tab-btn { background: #1e293b; color: white; border: 1px solid var(--gold); padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+        /* BANNER Y CONTADOR DINÁMICO */
+        .promo-banner { background: rgba(0,0,0,0.3); border: 2px solid var(--gold); border-radius: 15px; padding: 12px; margin-bottom: 15px; text-align: center; display: none; transition: 0.3s; }
+        .promo-timer { font-size: 22px; font-weight: 900; color: var(--gold-light); margin-top: 5px; }
+        
+        /* ESTADO DE URGENCIA (Menos de 2 horas) */
+        .urgencia-critica { border-color: var(--danger) !important; background: rgba(255, 77, 77, 0.1) !important; animation: pulseRed 1s infinite; }
+        .urgencia-critica .promo-timer { color: var(--danger) !important; }
+        @keyframes pulseRed { 0% { box-shadow: 0 0 0px var(--danger); } 50% { box-shadow: 0 0 15px var(--danger); } 100% { box-shadow: 0 0 0px var(--danger); } }
+
+        .header-stats { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 11px; font-weight: bold; }
+        .progress-container { background: #0f172a; border-radius: 10px; height: 10px; margin-bottom: 15px; border: 1px solid #334155; overflow: hidden; }
+        .progress-bar { background: linear-gradient(90deg, var(--gold), #fbbf24); height: 100%; width: 0%; transition: 0.8s; }
+
+        .tabs { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
+        .tab-btn { background: #1e293b; color: white; border: 1px solid var(--gold); padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 11px; }
         .tab-btn.active { background: var(--gold); color: black; font-weight: bold; }
 
-        /* GRID NÚMEROS */
-        .grid-numeros { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 6px; max-height: 300px; overflow-y: auto; padding: 10px; background: #0f172a; border-radius: 12px; border: 1px solid #334155; }
-        .numero { height: 40px; display: flex; align-items: center; justify-content: center; background: #334155; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; border: 1px solid #475569; }
-        .numero.ocupado { opacity: 0.15; background: black !important; pointer-events: none; }
-        .numero.seleccionado { background: var(--gold) !important; color: black !important; box-shadow: 0 0 12px var(--gold); transform: scale(1.05); border: 1px solid white; }
+        .grid-numeros { display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 5px; max-height: 280px; overflow-y: auto; padding: 8px; background: #0f172a; border-radius: 12px; }
+        .numero { height: 38px; display: flex; align-items: center; justify-content: center; background: #334155; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; border: 1px solid #475569; }
+        .numero.ocupado { opacity: 0.1; background: #000 !important; pointer-events: none; }
+        .numero.seleccionado { background: var(--gold) !important; color: black !important; transform: scale(1.05); }
 
-        /* ADMIN PANEL STYLES */
         #adminPanel { background: #f8fafc; color: #1e293b; border-radius: 20px; padding: 15px; margin-top: 20px; display: none; }
-        .admin-section { background: white; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #ddd; }
-        .db-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .db-card { background: #0f172a; padding: 10px; border-radius: 12px; border-top: 3px solid var(--gold); text-align: center; color: white; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; }
-        th { background: #1e293b; color: white; padding: 8px; }
-        td { border-bottom: 1px solid #eee; padding: 8px; text-align: center; }
-        .status-badge { padding: 4px 8px; border-radius: 5px; font-weight: bold; border: none; cursor: pointer; }
-        .status-badge.pagado { background: var(--success); color: white; }
-        .status-badge.pendiente { background: var(--warning); color: white; }
-
-        input, select { padding: 10px; border-radius: 8px; border: 1px solid #334155; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
-        .btn-gold { background: linear-gradient(45deg, var(--gold), #fbbf24); color: black; font-weight: 900; border: none; padding: 14px; border-radius: 10px; cursor: pointer; width: 100%; font-size: 14px; }
+        .admin-section { background: white; padding: 12px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #ddd; }
+        input { padding: 10px; border-radius: 8px; border: 1px solid #ccc; width: 100%; margin-bottom: 10px; }
+        .btn-gold { background: linear-gradient(45deg, var(--gold), #fbbf24); color: black; font-weight: 900; border: none; padding: 12px; border-radius: 10px; cursor: pointer; width: 100%; }
+        .check-container { display: flex; align-items: center; gap: 8px; margin: 10px 0; font-size: 12px; color: #94a3b8; }
     </style>
 </head>
 <body>
 
 <div id="pantallaInicio">
-    <div style="text-align:center; padding: 20px;">
-        <h1 style="color:var(--gold); margin:0;">SORTEOS ELITE 🍀</h1>
+    <div style="text-align:center; padding: 15px;">
+        <h1 style="color:var(--gold); margin:0; font-size: 24px;">SORTEOS ELITE 🍀</h1>
     </div>
     <div class="tabs">
         <button class="tab-btn active" onclick="cambiarTab('activas', event)">ACTIVAS</button>
         <button class="tab-btn" onclick="cambiarTab('historial', event)">HISTORIAL</button>
     </div>
-    <div id="listaRifas" style="padding: 10px;"></div>
+    <div id="listaRifas"></div>
 </div>
 
 <div id="rifaContenedor" class="container animate__animated animate__fadeIn" style="display:none;">
     <button onclick="volverInicio()" style="background:none; color:#94a3b8; border:none; cursor:pointer; margin-bottom:10px;">✕ VOLVER</button>
     
     <div id="contenidoRifa">
-        <img id="premioImgVer" src="" style="width:100%; border-radius:12px; aspect-ratio: 16/9; object-fit: cover;">
-        <h2 id="tituloRifa" style="text-align:center; color:var(--gold-light); margin: 10px 0;"></h2>
-        
-        <div id="seccionCompra">
-            <div id="resumenSeleccion" style="text-align:center; margin-bottom:10px; font-size:14px; color:var(--gold)">Selecciona tus números 👇</div>
-            <input type="text" id="nombre" placeholder="Nombre completo" style="background:#0f172a; color:white;">
-            <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)" style="background:#0f172a; color:white;">
-            <div id="tablero" class="grid-numeros"></div>
-            <button onclick="registrarPro()" class="btn-gold" style="margin-top:15px;">RESERVAR BOLETOS 🚀</button>
+        <div id="bannerPromo" class="promo-banner">
+            <div id="txtPromoMsg" style="color:white; font-weight:bold; font-size:13px;"></div>
+            <div id="contadorPromo" class="promo-timer">00:00:00</div>
         </div>
 
-        <div id="seccionHistorial" style="display:none; text-align:center; border-top: 1px solid var(--gold); margin-top:20px; padding-top:15px;">
-            <h3 style="color:var(--success)">🏆 GANADOR: <span id="txtGanador"></span></h3>
-            <p>Boleto premiado: <b id="txtNumGanador" style="font-size:20px; color:var(--gold)"></b></p>
-            <div id="evidenciasEntrega" style="display:grid; gap:10px; margin-top:15px;"></div>
+        <div class="header-stats">
+            <span>QUEDAN: <span id="txtDisponibles" style="color:var(--gold)">0</span></span>
+            <span id="txtPorcentaje">0%</span>
+        </div>
+        <div class="progress-container"><div id="bar" class="progress-bar"></div></div>
+
+        <img id="premioImgVer" src="" style="width:100%; border-radius:12px; border: 1px solid var(--gold); margin-bottom:10px;">
+        <h2 id="tituloRifa" style="text-align:center; color:var(--gold-light); margin: 5px 0; font-size: 18px;"></h2>
+        
+        <div id="seccionCompra">
+            <div id="resumenSeleccion" style="text-align:center; margin-bottom:12px; font-size:13px; color:var(--gold)">Elige tus números 👇</div>
+            <input type="text" id="nombre" placeholder="Nombre completo">
+            <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)">
+            <label class="check-container"><input type="checkbox" id="checkComunidad" checked> Avisarme de nuevas rifas 📢</label>
+            <div id="tablero" class="grid-numeros"></div>
+            <button onclick="registrarPro()" class="btn-gold" style="margin-top:15px;">RESERVAR AHORA 🚀</button>
+        </div>
+
+        <div id="seccionHistorial" style="display:none; text-align:center; border-top: 1px solid var(--gold); margin-top:15px; padding-top:15px;">
+            <h3 style="color:var(--success); margin:0;">🏆 GANADOR: <span id="txtGanador" style="color:white"></span></h3>
+            <div style="background: var(--gold); color: black; display: inline-block; padding: 4px 15px; border-radius: 15px; font-weight: 900; font-size: 20px; margin: 10px 0;">#<span id="txtNumGanador"></span></div>
+            <div id="evidenciasEntrega" style="margin-top:10px; display: grid; gap: 8px;"></div>
         </div>
     </div>
 </div>
 
 <div id="adminPanel" class="container">
-    <h3 style="text-align:center;">📊 PANEL DE CONTROL MAESTRO</h3>
-    
-    <div class="db-grid">
-        <div class="db-card"><h4>Recaudado</h4><p id="statDinero" style="color:var(--success)">$0</p></div>
-        <div class="db-card"><h4>Apartados</h4><p id="statApartados">0</p></div>
+    <h3 style="text-align:center;">⚙️ PANEL ELITE</h3>
+    <div class="admin-section" style="background: #fff5f5; border: 2px solid var(--danger);">
+        <h4 style="margin:0 0 10px 0;">🔥 PROMO Y RELOJ</h4>
+        <input type="text" id="promoTexto" placeholder="Mensaje: Ej. ¡2x1 HOY!">
+        <input type="datetime-local" id="promoFecha">
+        <button onclick="guardarPromo()" class="btn-gold" style="background:var(--danger); color:white;">ACTIVAR RELOJ 🔥</button>
+        <button onclick="borrarPromo()" style="width:100%; border:none; background:none; color:gray; font-size:10px; margin-top:5px; cursor:pointer;">Quitar promoción</button>
     </div>
-
-    <div class="admin-section">
-        <h4 style="margin:0 0 10px 0;">🏆 FINALIZAR RIFA</h4>
-        <input type="number" id="winNum" placeholder="Número Ganador" style="border:1px solid #ccc;">
-        <input type="text" id="winName" placeholder="Nombre del Ganador" style="border:1px solid #ccc;">
-        <input type="text" id="winEvidencias" placeholder="URLs Fotos (separadas por coma)" style="border:1px solid #ccc;">
-        <button onclick="finalizarRifa()" class="btn-gold" style="background:var(--success); color:white;">ENVIAR A HISTORIAL ✅</button>
-    </div>
-
-    <div class="admin-section">
-        <h4>👥 LISTA DE COBRO</h4>
-        <div style="overflow-x:auto;">
-            <table>
-                <thead><tr><th>#</th><th>Nombre</th><th>Estado</th><th>Borrar</th></tr></thead>
-                <tbody id="cuerpoTablaAdmin"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="admin-section">
-        <h4>🔧 CONFIGURACIÓN</h4>
-        <label style="font-size:10px;">URL Imagen</label><input type="text" id="confFoto">
-        <label style="font-size:10px;">Boleto $</label><input type="number" id="confPrecio">
-        <label style="font-size:10px;">Total Números</label><input type="number" id="confTotal">
-        <button onclick="guardarConfig()" class="btn-gold">💾 GUARDAR CAMBIOS</button>
-    </div>
-    <button onclick="borrarRifa()" style="color:red; background:none; border:none; cursor:pointer; width:100%; font-size:11px;">ELIMINAR ESTA RIFA COMPLETAMENTE</button>
+    <div class="admin-section"><button onclick="descargarCSV()" class="btn-gold" style="background:#4f46e5; color:white;">📥 DESCARGAR COMUNIDAD (.CSV)</button></div>
+    <div class="admin-section"><h4>👥 PAGOS Y NÚMEROS</h4><div style="overflow-x:auto;"><table style="width:100%; font-size:10px; text-align:center;"><thead><tr><th>#</th><th>Nombre</th><th>Pago</th><th>X</th></tr></thead><tbody id="cuerpoTablaAdmin"></tbody></table></div></div>
+    <div class="admin-section"><h4>🏆 FINALIZAR</h4><input type="number" id="winNum" placeholder="Número"><input type="text" id="winName" placeholder="Nombre"><input type="text" id="winEvidencias" placeholder="Fotos URLs (comas)"><button onclick="finalizarRifa()" class="btn-gold" style="background:var(--success); color:white;">PUBLICAR GANADOR ✅</button></div>
 </div>
 
-<button onclick="accesoAdmin()" style="opacity:0; position:fixed; bottom:0; left:0; width:100%; height:40px; cursor:default;">.</button>
+<button onclick="accesoAdmin()" style="opacity:0; position:fixed; bottom:0; left:0; width:100%; height:40px; border:none;"></button>
 
 <script>
     const firebaseConfig = {
@@ -128,7 +120,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    let rifaActualID = "", seleccionados = [], compradores = [], configRifa = {}, vistaActiva = 'activas';
+    let rifaActualID = "", seleccionados = [], compradores = [], configRifa = {}, vistaActiva = 'activas', timerInterval;
 
     function cambiarTab(tab, e) {
         vistaActiva = tab;
@@ -142,56 +134,68 @@
         db.ref(path).on('value', snap => {
             const container = document.getElementById('listaRifas');
             container.innerHTML = '';
-            const data = snap.val();
-            if(!data) return;
+            const data = snap.val(); if(!data) return;
             for(let id in data) {
-                container.innerHTML += `
-                    <div class="card-rifa" onclick="abrirRifa('${id}', '${vistaActiva}')" style="background:#1e293b; border-radius:15px; overflow:hidden; border:1px solid #334155; display:flex; align-items:center; padding:12px; cursor:pointer; margin-bottom:10px;">
-                        <img src="${data[id].config.foto}" style="width:60px; height:60px; border-radius:8px; object-fit:cover;">
-                        <div style="margin-left:15px;"><h4 style="margin:0; color:var(--gold)">${id}</h4><small>${vistaActiva==='activas'?'$'+data[id].config.precio:'Ganador: '+data[id].ganador.nombre}</small></div>
-                    </div>`;
+                container.innerHTML += `<div class="card-rifa" onclick="abrirRifa('${id}', '${vistaActiva}')" style="background:#1e293b; border-radius:12px; padding:10px; cursor:pointer; margin-bottom:8px; display:flex; align-items:center; border:1px solid #334155;"><img src="${data[id].config.foto}" style="width:50px; height:50px; border-radius:6px; object-fit:cover;"><div style="margin-left:12px;"><h4 style="margin:0; color:var(--gold); font-size:14px;">${id}</h4><small>${vistaActiva==='activas'?'En curso':'Finalizada'}</small></div></div>`;
             }
         });
     }
 
     function abrirRifa(id, tipo) {
-        rifaActualID = id;
-        seleccionados = [];
+        rifaActualID = id; seleccionados = [];
         document.getElementById('pantallaInicio').style.display = 'none';
         document.getElementById('rifaContenedor').style.display = 'block';
-        
         db.ref((tipo === 'activas' ? 'rifas_activas/' : 'historial_rifas/') + id).on('value', snap => {
-            const data = snap.val();
-            if(!data) return;
+            const data = snap.val(); if(!data) return;
             configRifa = data.config;
             compradores = data.participantes ? Object.entries(data.participantes).map(([k,v]) => ({id:k, ...v})) : [];
-
             document.getElementById('tituloRifa').innerText = id;
             document.getElementById('premioImgVer').src = configRifa.foto;
-            
             if(tipo === 'activas') {
                 document.getElementById('seccionCompra').style.display = 'block';
                 document.getElementById('seccionHistorial').style.display = 'none';
-                dibujarTablero();
-                actualizarDashboard();
-                // Llenar inputs admin
-                document.getElementById('confFoto').value = configRifa.foto;
-                document.getElementById('confPrecio').value = configRifa.precio;
-                document.getElementById('confTotal').value = configRifa.total || 100;
+                actualizarVisuales(); dibujarTablero(); iniciarContador(configRifa.promo);
             } else {
                 document.getElementById('seccionCompra').style.display = 'none';
                 document.getElementById('seccionHistorial').style.display = 'block';
                 document.getElementById('txtGanador').innerText = data.ganador.nombre;
-                document.getElementById('txtNumGanador').innerText = "#" + data.ganador.numero;
-                const eviDiv = document.getElementById('evidenciasEntrega');
-                eviDiv.innerHTML = '';
-                if(data.ganador.fotos) {
-                    data.ganador.fotos.split(',').forEach(url => {
-                        eviDiv.innerHTML += `<img src="${url.trim()}" style="width:100%; border-radius:12px; border:1px solid var(--gold);">`;
-                    });
-                }
+                document.getElementById('txtNumGanador').innerText = data.ganador.numero;
+                const eviDiv = document.getElementById('evidenciasEntrega'); eviDiv.innerHTML = '';
+                if(data.ganador.fotos) data.ganador.fotos.split(',').forEach(url => { eviDiv.innerHTML += `<img src="${url.trim()}" style="width:100%; border-radius:10px; border:1px solid var(--gold);">`; });
             }
         });
+    }
+
+    function iniciarContador(promo) {
+        clearInterval(timerInterval);
+        const banner = document.getElementById('bannerPromo');
+        if(!promo || !promo.fin) { banner.style.display = 'none'; return; }
+        const fin = new Date(promo.fin).getTime();
+        document.getElementById('txtPromoMsg').innerText = promo.texto;
+        banner.style.display = 'block';
+        timerInterval = setInterval(() => {
+            const ahora = new Date().getTime();
+            const faltante = fin - ahora;
+            if(faltante < 0) { clearInterval(timerInterval); banner.style.display = 'none'; return; }
+            
+            // Lógica de Urgencia (Menos de 2 horas = 7,200,000 ms)
+            if(faltante < 7200000) banner.classList.add('urgencia-critica');
+            else banner.classList.remove('urgencia-critica');
+
+            const dias = Math.floor(faltante / (1000 * 60 * 60 * 24));
+            const horas = Math.floor((faltante % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const mins = Math.floor((faltante % (1000 * 60 * 60)) / (1000 * 60));
+            const segs = Math.floor((faltante % (1000 * 60)) / 1000);
+            document.getElementById('contadorPromo').innerText = `${dias}d ${horas}h ${mins}m ${segs}s`;
+        }, 1000);
+    }
+
+    function actualizarVisuales() {
+        const total = configRifa.total || 100, ocupados = compradores.length;
+        document.getElementById('txtDisponibles').innerText = total - ocupados;
+        const porc = Math.floor((ocupados / total) * 100);
+        document.getElementById('txtPorcentaje').innerText = porc + "%";
+        document.getElementById('bar').style.width = porc + "%";
     }
 
     function dibujarTablero() {
@@ -202,87 +206,58 @@
             const ocu = ocupados.includes(i);
             div.className = 'numero' + (ocu ? ' ocupado' : (seleccionados.includes(i) ? ' seleccionado' : ''));
             div.innerText = i;
-            if(!ocu) {
-                div.onclick = () => {
-                    if(seleccionados.includes(i)) seleccionados = seleccionados.filter(n => n !== i);
-                    else seleccionados.push(i);
-                    actualizarResumen();
-                    dibujarTablero();
-                };
-            }
+            if(!ocu) div.onclick = () => { 
+                if(seleccionados.includes(i)) seleccionados = seleccionados.filter(n => n !== i);
+                else seleccionados.push(i);
+                document.getElementById('resumenSeleccion').innerHTML = seleccionados.length > 0 ? `Elegidos: <b>${seleccionados.join(', ')}</b>` : "Elige tus números 👇";
+                dibujarTablero();
+            };
             tab.appendChild(div);
         }
-    }
-
-    function actualizarResumen() {
-        document.getElementById('resumenSeleccion').innerHTML = seleccionados.length > 0 ? 
-            `Elegidos: <b>${seleccionados.join(', ')}</b> | Total: <b>$${seleccionados.length * configRifa.precio}</b>` : 
-            "Selecciona tus números abajo 👇";
+        actualizarAdmin();
     }
 
     async function registrarPro() {
         const n = document.getElementById('nombre').value, t = document.getElementById('telefono').value;
-        if(seleccionados.length === 0 || !n || t.length < 10) return alert("Completa tus datos y selecciona números");
-
+        if(seleccionados.length === 0 || !n || t.length < 10) return alert("Completa tus datos");
         const snap = await db.ref('rifas_activas/' + rifaActualID + '/participantes').get();
-        const ocupadosAhora = snap.val() ? Object.values(snap.val()).map(p => parseInt(p.numero)) : [];
-
-        for(let num of seleccionados) {
-            if(ocupadosAhora.includes(num)) return alert(`El número #${num} ya se ocupó. Intenta de nuevo.`);
-        }
-
-        seleccionados.forEach(num => {
-            db.ref('rifas_activas/'+rifaActualID+'/participantes').push({nombre:n, tel:t, numero:num, pagado:false, fechaRegistro: new Date().getTime()});
-        });
-
+        const ocupados = snap.val() ? Object.values(snap.val()).map(p => parseInt(p.numero)) : [];
+        for(let num of seleccionados) { if(ocupados.includes(num)) return alert(`⚠️ El #${num} se ocupó. Elige otro.`); }
+        seleccionados.forEach(num => { db.ref('rifas_activas/'+rifaActualID+'/participantes').push({nombre:n, tel:t, numero:num, pagado:false}); });
+        if(document.getElementById('checkComunidad').checked) db.ref('comunidad_elite/' + t).set({nombre: n, whatsapp: t, fecha: new Date().getTime()});
         window.open(`https://wa.me/523310711283?text=Aparté los números: ${seleccionados.join(', ')} para ${rifaActualID}. Soy ${n}.`, '_blank');
-        seleccionados = []; volverInicio();
+        volverInicio();
     }
 
-    // FUNCIONES ADMIN RESTAURADAS
-    function actualizarDashboard() {
-        const pagados = compradores.filter(c => c.pagado);
-        document.getElementById('statDinero').innerText = "$" + (pagados.length * configRifa.precio);
-        document.getElementById('statApartados').innerText = compradores.length;
-
+    function actualizarAdmin() {
         const cuerpo = document.getElementById('cuerpoTablaAdmin'); cuerpo.innerHTML = '';
         compradores.sort((a,b)=>a.numero-b.numero).forEach(c => {
-            cuerpo.innerHTML += `<tr>
-                <td>#${c.numero}</td>
-                <td>${c.nombre.substring(0,10)}</td>
-                <td><button class="status-badge ${c.pagado?'pagado':'pendiente'}" onclick="marcarPago('${c.id}', ${c.pagado})">${c.pagado?'PAGÓ':'PEND'}</button></td>
-                <td><button onclick="borrarParticipante('${c.id}')">🗑️</button></td>
-            </tr>`;
+            cuerpo.innerHTML += `<tr><td>#${c.numero}</td><td>${c.nombre.substring(0,6)}</td><td><button style="background:${c.pagado?'#22c55e':'#f59e0b'}; color:white; border:none; padding:2px 5px; border-radius:4px;" onclick="marcarPago('${c.id}', ${c.pagado})">${c.pagado?'SI':'NO'}</button></td><td><button onclick="borrarP('${c.id}')" style="border:none; background:none;">🗑️</button></td></tr>`;
         });
     }
 
-    function marcarPago(cid, estado) { db.ref('rifas_activas/'+rifaActualID+'/participantes/'+cid).update({pagado: !estado}); }
-    function borrarParticipante(cid) { if(confirm("¿Liberar número?")) db.ref('rifas_activas/'+rifaActualID+'/participantes/'+cid).remove(); }
-    function guardarConfig() {
-        db.ref('rifas_activas/'+rifaActualID+'/config').update({
-            foto: document.getElementById('confFoto').value,
-            precio: parseInt(document.getElementById('confPrecio').value),
-            total: parseInt(document.getElementById('confTotal').value)
-        }).then(()=>alert("Guardado"));
+    function guardarPromo() { db.ref('rifas_activas/'+rifaActualID+'/config/promo').set({ texto: document.getElementById('promoTexto').value, fin: document.getElementById('promoFecha').value }).then(()=>alert("Promo activada")); }
+    function borrarPromo() { if(confirm("¿Quitar?")) db.ref('rifas_activas/'+rifaActualID+'/config/promo').remove(); }
+    function descargarCSV() {
+        db.ref('comunidad_elite').once('value', snap => {
+            const data = snap.val(); if(!data) return alert("Vacía");
+            let csv = "Nombre,WhatsApp,Fecha\n";
+            Object.values(data).forEach(u => csv += `${u.nombre},${u.whatsapp},${new Date(u.fecha).toLocaleDateString()}\n`);
+            const link = document.createElement("a"); link.href = encodeURI("data:text/csv;charset=utf-8," + csv); link.download = "Comunidad_Elite.csv"; link.click();
+        });
     }
-
+    function marcarPago(cid, est) { db.ref('rifas_activas/'+rifaActualID+'/participantes/'+cid).update({pagado: !est}); }
+    function borrarP(cid) { if(confirm("¿Liberar?")) db.ref('rifas_activas/'+rifaActualID+'/participantes/'+cid).remove(); }
     function finalizarRifa() {
-        const num = document.getElementById('winNum').value, nom = document.getElementById('winName').value, fotos = document.getElementById('winEvidencias').value;
-        if(!num || !nom) return alert("Pon datos del ganador");
+        const num = document.getElementById('winNum').value, nom = document.getElementById('winName').value;
+        if(!num || !nom) return alert("Faltan datos");
         db.ref('rifas_activas/'+rifaActualID).once('value', snap => {
-            const data = snap.val();
-            data.ganador = { numero: num, nombre: nom, fotos: fotos };
-            db.ref('historial_rifas/'+rifaActualID).set(data).then(() => {
-                db.ref('rifas_activas/'+rifaActualID).remove();
-                alert("🏆 Movido al Historial"); volverInicio();
-            });
+            const data = snap.val(); data.ganador = { numero: num, nombre: nom, fotos: document.getElementById('winEvidencias').value };
+            db.ref('historial_rifas/'+rifaActualID).set(data).then(() => { db.ref('rifas_activas/'+rifaActualID).remove(); volverInicio(); });
         });
     }
-
-    function accesoAdmin() { if(prompt("Contraseña:")==="1234") document.getElementById('adminPanel').style.display='block'; }
+    function accesoAdmin() { if(prompt("Clave:")==="1234") document.getElementById('adminPanel').style.display='block'; }
     function volverInicio() { document.getElementById('rifaContenedor').style.display='none'; document.getElementById('adminPanel').style.display='none'; document.getElementById('pantallaInicio').style.display='block'; cargarLista(); }
-    function borrarRifa() { if(confirm("¿BORRAR TODO?")) { db.ref('rifas_activas/'+rifaActualID).remove(); volverInicio(); } }
-
     cargarLista();
 </script>
 </body>
