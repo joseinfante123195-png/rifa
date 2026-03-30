@@ -271,6 +271,7 @@
         dibujarTablero();
     }
 
+    // MENSAJE DE WHATSAPP RESTAURADO SEGÚN TU PREFERENCIA
     function registrarPro() {
         const n = document.getElementById('nombre').value, t = document.getElementById('telefono').value;
         const req = configRifa.numPorCombo || 1;
@@ -278,7 +279,11 @@
         if(seleccionados.length !== req) return alert("Selecciona tus números");
         const vID = Date.now();
         seleccionados.forEach(num => { db.ref('rifas_activas/'+rifaActualID+'/participantes').push({ nombre:n, tel:t, numero:num, pagado:false, ventaID: vID }); });
-        window.open(`https://wa.me/523310711283?text=Apartado en ${rifaActualID}: ${n} (#${seleccionados.join(', ')})`, '_blank');
+        
+        // Mensaje restaurado:
+        const msj = `Aparté el # ${seleccionados.join(', ')} para ${rifaActualID}. Soy ${n}. ¿Me pasas info de pago?`;
+        window.open(`https://wa.me/523310711283?text=${encodeURIComponent(msj)}`, '_blank');
+        
         volverInicio();
     }
 
