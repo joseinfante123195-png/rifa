@@ -52,15 +52,12 @@
         .btn-finish { background: #000; color: var(--gold); border: 2px solid var(--gold); padding: 15px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: 900; margin-top: 10px; }
         label { display: block; font-size: 11px; font-weight: bold; color: #64748b; margin-bottom: 4px; }
         
-        /* DASHBOARD FIX */
         .finanzas-header { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .finanzas-stat { background: #f1f5f9; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0; }
         .finanzas-stat span { display: block; font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; }
         .finanzas-stat strong { font-size: 18px; color: #1e293b; }
-        
-        .finanzas-pills { display: flex; gap: 5px; margin-top: 10px; margin-bottom: 15px; }
+        .finanzas-pills { display: flex; gap: 5px; margin-top: 10px; }
         .pill { flex: 1; padding: 8px; border-radius: 8px; font-size: 10px; font-weight: bold; text-align: center; color: white; }
-        
         .btn-csv { background: #000; color: white; padding: 10px; border-radius: 10px; border: none; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
@@ -73,7 +70,7 @@
         <h1 style="color:var(--gold); margin:0; font-size: 26px; font-weight: 900;">RIFAS EL TAPATÍO 🍀</h1>
     </div>
     <div class="tabs-tapatio">
-        <button id="btnTabActivas" class="tab-btn-tapatio active" onclick="cambiarSeccion('activas')">Activas</button>
+        <button id="btnTabActivas" class="tab-btn-tapatio active" onclick="cambiarSeccion('activas')">Rifas Activas</button>
         <button id="btnTabHistorial" class="tab-btn-tapatio" onclick="cambiarSeccion('historial')">Historial</button>
     </div>
     <div id="listaRifas"></div>
@@ -84,6 +81,13 @@
     <div id="contenidoRifa">
         <img id="premioImgVer" src="" style="width:100%; border-radius:15px; border: 1px solid var(--gold); margin-bottom:15px;">
         <h2 id="tituloRifa" style="text-align:center; color:var(--gold-light); margin-bottom:10px;"></h2>
+        
+        <div id="infoGanadorUsuario" style="display:none; background:#1e293b; border:1px solid var(--success); padding:10px; border-radius:10px; margin-bottom:15px; text-align:center;">
+            <h4 style="color:var(--success); margin:0;">🏆 GANADOR</h4>
+            <p id="txtGanadorDetalle" style="margin:5px 0; font-weight:bold;"></p>
+        </div>
+        <div id="galeriaEvidencia" style="display:flex; gap:10px; overflow-x:auto; margin-bottom:15px;"></div>
+        
         <div id="barraProgresoUser">
             <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:bold; margin-bottom:5px;">
                 <span>DISPONIBLES: <span id="txtDisponibles" style="color:var(--gold)">0</span></span>
@@ -91,6 +95,7 @@
             </div>
             <div class="progress-container" style="margin-bottom:20px;"><div id="bar" class="progress-bar"></div></div>
         </div>
+        
         <div id="seccionCompra">
             <input type="text" id="nombre" placeholder="Nombre completo">
             <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)">
@@ -103,14 +108,19 @@
 
 <div id="adminPanel" class="container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3>⚙️ ADMIN PANEL</h3>
+        <h3>⚙️ ADMIN</h3>
         <button onclick="volverInicio()" style="background:none; border:none; font-size: 20px;">✕</button>
     </div>
     
     <div id="adminMenuPrincipal">
-        <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-proceso')"><span>📊 GESTIONAR RIFAS</span> ❯</button>
+        <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-proceso')"><span>📊 GESTIÓN</span> ❯</button>
         <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-creador')"><span>🆕 NUEVA RIFA</span> ❯</button>
         <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-papelera')"><span>🗑️ PAPELERA</span> ❯</button>
+    </div>
+
+    <div id="sec-proceso" class="admin-section-content">
+        <button onclick="regresarMenuAdmin()" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
+        <div id="listaGestionRifas"></div>
     </div>
 
     <div id="sec-finanzas" class="admin-section-content">
@@ -118,13 +128,13 @@
         <div class="admin-card">
             <h3 id="finanzasNombreRifa" style="margin:0 0 10px 0; color:var(--gold);"></h3>
             <div class="finanzas-header">
-                <div class="finanzas-stat"><span>Caja (Pagado)</span><strong id="fin-caja" style="color:var(--success)">$0</strong></div>
-                <div class="finanzas-stat"><span>Pendiente</span><strong id="fin-deuda" style="color:var(--danger)">$0</strong></div>
+                <div class="finanzas-stat"><span>Caja</span><strong id="fin-caja" style="color:var(--success)">$0</strong></div>
+                <div class="finanzas-stat"><span>Debe</span><strong id="fin-deuda" style="color:var(--danger)">$0</strong></div>
             </div>
             <div class="finanzas-pills">
                 <div class="pill" style="background:var(--success)">PAGADOS: <span id="pill-pagados">0</span></div>
                 <div class="pill" style="background:var(--danger)">APARTADOS: <span id="pill-apartados">0</span></div>
-                <div class="pill" style="background:var(--dark-100); border: 1px solid #444;">LIBRES: <span id="pill-libres">0</span></div>
+                <div class="pill" style="background:var(--dark-100)">LIBRES: <span id="pill-libres">0</span></div>
             </div>
             <button onclick="descargarCSV()" class="btn-csv">📥 DESCARGAR CSV</button>
         </div>
@@ -134,31 +144,31 @@
     <div id="sec-creador" class="admin-section-content">
         <button onclick="regresarMenuAdmin()" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ CANCELAR</button>
         <div class="admin-card">
-            <h4 id="creadorTitulo">Configurar Rifa</h4>
-            <input type="text" id="newRifaNombre" placeholder="Nombre de la Rifa">
-            <input type="number" id="newRifaTotal" placeholder="Total de Números">
-            <input type="number" id="newRifaPrecio" placeholder="Precio ($)">
-            <input type="text" id="newRifaFoto" placeholder="URL de Foto">
-            <input type="datetime-local" id="newRifaFecha">
-            <select id="newRifaModo"><option value="1">Individual</option><option value="2">Combo 2</option><option value="5">Combo 5</option></select>
+            <h4 id="creadorTitulo">Configuración</h4>
+            <label>Nombre</label><input type="text" id="newRifaNombre">
+            <label>Total de Números</label><input type="number" id="newRifaTotal">
+            <label>Precio ($)</label><input type="number" id="newRifaPrecio">
+            <label>URL Foto</label><input type="text" id="newRifaFoto">
+            <label>Fecha Sorteo</label><input type="datetime-local" id="newRifaFecha">
+            <label>Combo</label><select id="newRifaModo"><option value="1">Individual</option><option value="2">Combo 2</option><option value="5">Combo 5</option></select>
             
-            <div style="background:#fff5f5; padding:15px; border-radius:12px; margin-top:15px; border:1px solid #feb2b2;">
-                <label style="color:#c53030">TEXTO DE OFERTA</label>
-                <input type="text" id="ofertaTexto" placeholder="Ej: ¡Promo 2x1!">
-                <label style="color:#c53030">EXPIRACIÓN DE OFERTA</label>
-                <input type="datetime-local" id="ofertaExpira">
-                <button onclick="eliminarOfertaCampos()" style="background:#e53e3e; color:white; border:none; padding:10px; border-radius:8px; width:100%; font-weight:bold; cursor:pointer; margin-top:5px;">❌ ELIMINAR OFERTA</button>
+            <div style="background:#fff5f5; padding:12px; border-radius:12px; border:1px solid #feb2b2; margin-top:10px;">
+                <label style="color:#c53030">Oferta</label><input type="text" id="ofertaTexto">
+                <label style="color:#c53030">Expira</label><input type="datetime-local" id="ofertaExpira">
+                <button onclick="document.getElementById('ofertaTexto').value='';document.getElementById('ofertaExpira').value='';" style="background:#e53e3e; color:white; border:none; padding:8px; border-radius:8px; width:100%; font-weight:bold; cursor:pointer;">❌ ELIMINAR OFERTA</button>
             </div>
 
+            <div id="seccionFinalizar" style="display:none; background:#f0f9ff; padding:12px; border-radius:12px; border:1px solid #bae6fd; margin-top:15px;">
+                <h4 style="color:#0369a1; margin-top:0;">🏆 GANADOR</h4>
+                <label>Nombre</label><input type="text" id="winNombre">
+                <label>Boleto</label><input type="number" id="winNumero">
+                <label>Evidencia (URL, URL)</label><textarea id="winFotos" rows="2"></textarea>
+                <button onclick="finalizarRifa()" class="btn-finish">FINALIZAR 🏆</button>
+            </div>
             <button onclick="crearNuevaRifa()" class="btn-gold" style="margin-top:20px;">GUARDAR RIFA 🚀</button>
         </div>
     </div>
 
-    <div id="sec-proceso" class="admin-section-content">
-        <button onclick="regresarMenuAdmin()" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
-        <div id="listaGestionRifas"></div>
-    </div>
-    
     <div id="sec-papelera" class="admin-section-content">
         <button onclick="regresarMenuAdmin()" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
         <div id="listaPapelera"></div>
@@ -170,9 +180,9 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let rifaActualID = "", seleccionados = [], compradores = [], configRifa = {}, vistaActiva = 'activas';
+    let rifaActualID = "", seleccionados = [], compradores = [], configRifa = {}, vistaActiva = 'activas', modoEdicion = false;
 
-    // BLINDAJE DE EXPOSICIÓN DE OFERTAS
+    // SISTEMA DE TIMERS Y OFERTAS BLINDADO
     setInterval(() => {
         const ahora = new Date().getTime();
         document.querySelectorAll('.oferta-box').forEach(box => {
@@ -190,99 +200,19 @@
                 const conf = data[id].config;
                 const apartados = data[id].participantes ? Object.keys(data[id].participantes).length : 0;
                 const porc = Math.floor((apartados / conf.total) * 100);
-                
-                // Lógica de Oferta
-                const ahora = new Date().getTime();
                 const expT = conf.ofertaExpira ? new Date(conf.ofertaExpira).getTime() : 0;
-                const ofertaHtml = (conf.ofertaTexto && (!expT || ahora < expT)) 
+                const ofertaHtml = (conf.ofertaTexto && (!expT || new Date().getTime() < expT)) 
                     ? `<div class="oferta-tag oferta-box" data-expira="${conf.ofertaExpira}">${conf.ofertaTexto}</div>` : '';
+                const winTag = conf.winNombre ? `<div class="winner-tag">🏆 ${conf.winNombre} (#${conf.winNumero})</div>` : '';
 
-                container.innerHTML += `
-                <div class="rifa-card" onclick="abrirRifa('${id}', '${vistaActiva}')">
-                    <div class="rifa-badge">$${conf.precio}</div>
-                    <img src="${conf.foto}">
-                    <div class="rifa-info">
-                        <h4 style="margin:0; color:var(--gold);">${id}</h4>
-                        ${ofertaHtml}
-                        <div class="progress-container"><div class="progress-bar" style="width:${porc}%"></div></div>
-                    </div>
-                </div>`;
+                container.innerHTML += `<div class="rifa-card" onclick="abrirRifa('${id}', '${vistaActiva}')">
+                    <div class="rifa-badge">$${conf.precio}</div><img src="${conf.foto}"><div class="rifa-info">
+                    <h4 style="margin:0; color:var(--gold);">${id}</h4>${ofertaHtml}${winTag}
+                    <div class="progress-container"><div class="progress-bar" style="width:${porc}%"></div></div></div></div>`;
             }
         });
     }
 
-    function abrirFinanzas(id) {
-        rifaActualID = id;
-        document.getElementById('finanzasNombreRifa').innerText = id;
-        verSeccionAdmin('sec-finanzas');
-        db.ref('rifas_activas/' + id).on('value', snap => {
-            const data = snap.val(); if(!data) return;
-            configRifa = data.config;
-            compradores = data.participantes ? Object.entries(data.participantes).map(([k,v]) => ({id:k, ...v})) : [];
-            actualizarFinanzasUI();
-        });
-    }
-
-    function actualizarFinanzasUI() {
-        const container = document.getElementById('listaPagosFinanzas'); container.innerHTML = '';
-        let caja = 0, deuda = 0, pCont = 0, aCont = 0;
-        const agrupadas = {};
-        
-        compradores.forEach(c => {
-            if(c.pagado) pCont++; else aCont++;
-            if(!agrupadas[c.ventaID]) agrupadas[c.ventaID] = { nombre:c.nombre, tel:c.tel, nums:[], pagado:c.pagado, ids:[] };
-            agrupadas[c.ventaID].nums.push(c.numero);
-            agrupadas[c.ventaID].ids.push(c.id);
-        });
-
-        for(let vID in agrupadas) {
-            const v = agrupadas[vID];
-            if(v.pagado) caja += configRifa.precio; else deuda += configRifa.precio;
-            container.innerHTML += `
-            <div style="padding:12px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                <div><strong>${v.nombre}</strong><br><small>#${v.nums.join(',')}</small></div>
-                <div>
-                    <button onclick="cambiarEstadoPago('${v.ids.join(',')}', ${v.pagado})" style="background:${v.pagado?'#22c55e':'#ff4d4d'}; color:white; border:none; padding:8px; border-radius:5px;">${v.pagado?'PAGADO':'DEBE'}</button>
-                    <button onclick="eliminarVenta('${v.ids.join(',')}')" style="background:#eee; border:none; padding:8px; border-radius:5px; margin-left:5px;">🔓</button>
-                </div>
-            </div>`;
-        }
-        
-        document.getElementById('fin-caja').innerText = "$" + caja;
-        document.getElementById('fin-deuda').innerText = "$" + deuda;
-        // ACTUALIZACIÓN DE NÚMEROS EN DASHBOARD
-        document.getElementById('pill-pagados').innerText = pCont;
-        document.getElementById('pill-apartados').innerText = aCont;
-        document.getElementById('pill-libres').innerText = configRifa.total - (pCont + aCont);
-    }
-
-    function eliminarOfertaCampos() {
-        document.getElementById('ofertaTexto').value = "";
-        document.getElementById('ofertaExpira').value = "";
-        alert("Oferta eliminada localmente. Haz clic en 'GUARDAR RIFA' para confirmar.");
-    }
-
-    function crearNuevaRifa() {
-        const n = document.getElementById('newRifaNombre').value;
-        const payload = {
-            config: {
-                nombre: n,
-                total: parseInt(document.getElementById('newRifaTotal').value),
-                precio: parseInt(document.getElementById('newRifaPrecio').value),
-                foto: document.getElementById('newRifaFoto').value,
-                fecha: document.getElementById('newRifaFecha').value,
-                numPorCombo: parseInt(document.getElementById('newRifaModo').value),
-                ofertaTexto: document.getElementById('ofertaTexto').value,
-                ofertaExpira: document.getElementById('ofertaExpira').value
-            }
-        };
-        db.ref('rifas_activas/' + n).update(payload).then(() => {
-            alert("Rifa Guardada con éxito");
-            regresarMenuAdmin();
-        });
-    }
-
-    // FUNCIONES BASE (BLINDADAS)
     function abrirRifa(id, tipo) {
         rifaActualID = id; seleccionados = [];
         document.getElementById('pantallaInicio').style.display = 'none';
@@ -293,7 +223,20 @@
             compradores = data.participantes ? Object.entries(data.participantes).map(([k,v]) => ({id:k, ...v})) : [];
             document.getElementById('tituloRifa').innerText = id;
             document.getElementById('premioImgVer').src = configRifa.foto;
-            dibujarTablero();
+            
+            if(tipo === 'historial' || configRifa.winNombre) {
+                document.getElementById('seccionCompra').style.display = 'none';
+                document.getElementById('barraProgresoUser').style.display = 'none';
+                document.getElementById('infoGanadorUsuario').style.display = 'block';
+                document.getElementById('txtGanadorDetalle').innerText = `${configRifa.winNombre} (#${configRifa.winNumero})`;
+                const gal = document.getElementById('galeriaEvidencia'); gal.innerHTML = '';
+                if(configRifa.winFotos) configRifa.winFotos.split(',').forEach(u => gal.innerHTML += `<img src="${u.trim()}" style="height:120px; border-radius:10px;">`);
+            } else {
+                document.getElementById('seccionCompra').style.display = 'block';
+                document.getElementById('barraProgresoUser').style.display = 'block';
+                document.getElementById('infoGanadorUsuario').style.display = 'none';
+                dibujarTablero();
+            }
         });
     }
 
@@ -334,37 +277,111 @@
 
     function registrarPro() {
         const n = document.getElementById('nombre').value, t = document.getElementById('telefono').value;
-        if(!n || t.length < 10 || seleccionados.length < (configRifa.numPorCombo || 1)) return alert("Revisa tus datos o selección");
+        if(!n || t.length < 10 || seleccionados.length !== (configRifa.numPorCombo || 1)) return alert("Completa tus datos");
         const vID = Date.now();
         seleccionados.forEach(num => { db.ref('rifas_activas/'+rifaActualID+'/participantes').push({ nombre:n, tel:t, numero:num, pagado:false, ventaID: vID }); });
-        window.open(`https://wa.me/523310711283?text=Hola, aparté el # ${seleccionados.join(', ')} para ${rifaActualID}. Soy ${n}.`, '_blank');
+        window.open(`https://wa.me/523310711283?text=Aparté los números ${seleccionados.join(', ')} para ${rifaActualID}. Soy ${n}.`, '_blank');
         volverInicio();
     }
 
-    function cambiarEstadoPago(idsStr, est) { idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).update({pagado:!est})); }
-    function eliminarVenta(idsStr) { if(confirm("¿Liberar estos números?")) idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).remove()); }
-    function verSeccionAdmin(id) { document.getElementById('adminMenuPrincipal').style.display='none'; document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id==='sec-proceso') cargarListaGestion(); }
-    function regresarMenuAdmin() { document.getElementById('adminMenuPrincipal').style.display='block'; document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); }
-    function accesoAdmin() { if(prompt("Clave:")==="rifa2369") { document.getElementById('adminPanel').style.display='block'; document.getElementById('pantallaInicio').style.display='none'; } }
-    function volverInicio() { document.getElementById('adminPanel').style.display='none'; document.getElementById('rifaContenedor').style.display='none'; document.getElementById('pantallaInicio').style.display='block'; cargarLista(); }
-    function cambiarSeccion(t) { vistaActiva = t; cargarLista(); }
+    function abrirFinanzas(id) {
+        rifaActualID = id; document.getElementById('finanzasNombreRifa').innerText = id; verSeccionAdmin('sec-finanzas');
+        db.ref('rifas_activas/' + id).on('value', snap => {
+            const data = snap.val(); if(!data) return;
+            configRifa = data.config;
+            compradores = data.participantes ? Object.entries(data.participantes).map(([k,v]) => ({id:k, ...v})) : [];
+            actualizarFinanzasUI();
+        });
+    }
+
+    function actualizarFinanzasUI() {
+        const container = document.getElementById('listaPagosFinanzas'); container.innerHTML = '';
+        let caja = 0, deuda = 0, pCont = 0, aCont = 0;
+        const agrupadas = {};
+        compradores.forEach(c => {
+            if(c.pagado) pCont++; else aCont++;
+            if(!agrupadas[c.ventaID]) agrupadas[c.ventaID] = { nombre:c.nombre, tel:c.tel, nums:[], pagado:c.pagado, ids:[] };
+            agrupadas[c.ventaID].nums.push(c.numero); agrupadas[c.ventaID].ids.push(c.id);
+        });
+        for(let vID in agrupadas) {
+            const v = agrupadas[vID];
+            if(v.pagado) caja += configRifa.precio; else deuda += configRifa.precio;
+            container.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                <div><strong>${v.nombre}</strong><br><small>#${v.nums.join(',')}</small></div>
+                <div><button onclick="cambiarEstadoPago('${v.ids.join(',')}', ${v.pagado})" style="background:${v.pagado?'#22c55e':'#ff4d4d'}; color:white; border:none; padding:8px; border-radius:5px;">${v.pagado?'PAGADO':'DEBE'}</button>
+                <button onclick="eliminarVenta('${v.ids.join(',')}')" style="background:#eee; border:none; padding:8px; border-radius:5px; margin-left:5px;">🔓</button></div></div>`;
+        }
+        document.getElementById('fin-caja').innerText = "$" + caja;
+        document.getElementById('fin-deuda').innerText = "$" + deuda;
+        document.getElementById('pill-pagados').innerText = pCont;
+        document.getElementById('pill-apartados').innerText = aCont;
+        document.getElementById('pill-libres').innerText = configRifa.total - (pCont + aCont);
+    }
+
+    function editarRifa(id) {
+        modoEdicion = true; rifaActualID = id;
+        db.ref('rifas_activas/' + id + '/config').once('value', snap => {
+            const conf = snap.val();
+            document.getElementById('newRifaNombre').value = id;
+            document.getElementById('newRifaTotal').value = conf.total;
+            document.getElementById('newRifaPrecio').value = conf.precio;
+            document.getElementById('newRifaFoto').value = conf.foto;
+            document.getElementById('newRifaFecha').value = conf.fecha;
+            document.getElementById('newRifaModo').value = conf.numPorCombo;
+            document.getElementById('ofertaTexto').value = conf.ofertaTexto || "";
+            document.getElementById('ofertaExpira').value = conf.ofertaExpira || "";
+            document.getElementById('seccionFinalizar').style.display = 'block';
+            verSeccionAdmin('sec-creador');
+        });
+    }
+
+    function crearNuevaRifa() {
+        const n = document.getElementById('newRifaNombre').value;
+        const config = {
+            total: parseInt(document.getElementById('newRifaTotal').value),
+            precio: parseInt(document.getElementById('newRifaPrecio').value),
+            foto: document.getElementById('newRifaFoto').value,
+            fecha: document.getElementById('newRifaFecha').value,
+            numPorCombo: parseInt(document.getElementById('newRifaModo').value),
+            ofertaTexto: document.getElementById('ofertaTexto').value,
+            ofertaExpira: document.getElementById('ofertaExpira').value
+        };
+        db.ref('rifas_activas/' + n + '/config').update(config).then(() => { alert("Guardado"); regresarMenuAdmin(); });
+    }
+
+    function finalizarRifa() {
+        const wn = document.getElementById('winNombre').value, wnum = document.getElementById('winNumero').value;
+        if(!wn || !wnum) return alert("Faltan datos");
+        db.ref('rifas_activas/' + rifaActualID).once('value', snap => {
+            const data = snap.val(); data.config.winNombre = wn; data.config.winNumero = wnum; data.config.winFotos = document.getElementById('winFotos').value;
+            db.ref('historial_rifas/' + rifaActualID).set(data).then(() => { db.ref('rifas_activas/' + rifaActualID).remove(); alert("Finalizada"); regresarMenuAdmin(); });
+        });
+    }
 
     function cargarListaGestion() {
         db.ref('rifas_activas').on('value', snap => {
             const container = document.getElementById('listaGestionRifas'); container.innerHTML = '';
             const data = snap.val(); if(!data) return;
-            for(let id in data) {
-                container.innerHTML += `
-                <div class="admin-card" style="display:flex; justify-content:space-between; align-items:center;">
-                    <strong>${id}</strong>
-                    <div>
-                        <button onclick="abrirFinanzas('${id}')" style="background:var(--success); color:white; border:none; padding:8px; border-radius:5px;">💰 FINANZAS</button>
-                    </div>
-                </div>`;
-            }
+            for(let id in data) container.innerHTML += `<div class="admin-card" style="display:flex; justify-content:space-between; align-items:center;">
+                <strong>${id}</strong><div><button onclick="abrirFinanzas('${id}')" style="background:var(--success); color:white; border:none; padding:8px; border-radius:5px; margin-right:5px;">💰</button>
+                <button onclick="editarRifa('${id}')" style="background:#eee; border:none; padding:8px; border-radius:5px; margin-right:5px;">✏️</button>
+                <button onclick="enviarAPapelera('${id}')" style="background:none; border:none; font-size:18px;">🗑️</button></div></div>`;
         });
     }
 
+    function enviarAPapelera(id) { if(confirm("¿A papelera?")) db.ref('rifas_activas/'+id).once('value', s => { db.ref('papelera/'+id).set(s.val()).then(() => db.ref('rifas_activas/'+id).remove()); }); }
+    function cargarPapelera() { db.ref('papelera').on('value', snap => { const container = document.getElementById('listaPapelera'); container.innerHTML = ''; const data = snap.val(); for(let id in data) container.innerHTML += `<div class="admin-card" style="display:flex; justify-content:space-between;"><strong>${id}</strong><button onclick="recuperarRifa('${id}')">🔄</button></div>`; }); }
+    function recuperarRifa(id) { db.ref('papelera/'+id).once('value', s => { db.ref('rifas_activas/'+id).set(s.val()).then(() => db.ref('papelera/'+id).remove()); }); }
+    
+    function cambiarEstadoPago(idsStr, est) { idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).update({pagado:!est})); }
+    function eliminarVenta(idsStr) { if(confirm("¿Liberar?")) idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).remove()); }
+    function verSeccionAdmin(id) { document.getElementById('adminMenuPrincipal').style.display='none'; document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id==='sec-proceso') cargarListaGestion(); if(id==='sec-papelera') cargarPapelera(); }
+    function regresarMenuAdmin() { modoEdicion = false; document.getElementById('adminMenuPrincipal').style.display='block'; document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); }
+    function accesoAdmin() { if(prompt("Clave:")==="rifa2369") { document.getElementById('adminPanel').style.display='block'; document.getElementById('pantallaInicio').style.display='none'; } }
+    function volverInicio() { document.getElementById('adminPanel').style.display='none'; document.getElementById('rifaContenedor').style.display='none'; document.getElementById('pantallaInicio').style.display='block'; cargarLista(); }
+    function cambiarSeccion(t) { vistaActiva = t; document.getElementById('btnTabActivas').classList.toggle('active', t==='activas'); document.getElementById('btnTabHistorial').classList.toggle('active', t==='historial'); cargarLista(); }
+    function descargarCSV() { let csv = "Nombre,Telefono,Numeros,Pagado\n"; compradores.forEach(c => csv += `"${c.nombre}","${c.tel}","${c.numero}","${c.pagado?'SI':'NO'}"\n`); const blob = new Blob([csv], { type: 'text/csv' }); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.setAttribute('href', url); a.setAttribute('download', `${rifaActualID}.csv`); a.click(); }
+    
     cargarLista();
 </script>
 </body>
