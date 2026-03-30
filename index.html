@@ -18,25 +18,29 @@
         .progress-container { background: #0f172a; border-radius: 10px; height: 10px; margin-bottom: 15px; border: 1px solid #334155; overflow: hidden; }
         .progress-bar { background: linear-gradient(90deg, var(--gold), #fbbf24); height: 100%; width: 0%; transition: 0.8s; }
         
-        /* Estilos de botones de navegación principal */
         .tabs-tapatio { display: flex; gap: 10px; margin-bottom: 20px; padding: 0 5px; }
         .tab-btn-tapatio { flex: 1; background: #1e293b; color: white; border: 1px solid var(--gold); padding: 14px 10px; border-radius: 12px; cursor: pointer; font-size: 12px; font-weight: bold; text-transform: uppercase; transition: 0.3s; }
         .tab-btn-tapatio.active { background: var(--gold); color: black; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
 
-        /* Tarjetas Premium */
-        .rifa-card { background: #1e293b; border-radius: 15px; padding: 12px; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; border: 1px solid #334155; transition: transform 0.2s; position: relative; overflow: hidden; }
-        .rifa-card:active { transform: scale(0.98); }
+        .rifa-card { background: #1e293b; border-radius: 15px; padding: 12px; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; border: 1px solid #334155; position: relative; overflow: hidden; }
         .rifa-card img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; border: 1px solid var(--gold); }
         .rifa-info { margin-left: 15px; flex: 1; }
-        .rifa-badge { position: absolute; top: 0; right: 0; background: var(--gold); color: black; font-size: 9px; padding: 4px 10px; font-weight: bold; border-bottom-left-radius: 10px; text-transform: uppercase; }
+        .rifa-badge { position: absolute; top: 0; right: 0; background: var(--gold); color: black; font-size: 9px; padding: 4px 10px; font-weight: bold; border-bottom-left-radius: 10px; }
 
         .grid-numeros { display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 5px; max-height: 280px; overflow-y: auto; padding: 8px; background: #0f172a; border-radius: 12px; }
         .numero { height: 38px; display: flex; align-items: center; justify-content: center; background: #334155; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; border: 1px solid #475569; }
         .numero.ocupado { opacity: 0.1; background: #000 !important; pointer-events: none; }
         .numero.seleccionado { background: var(--gold) !important; color: black !important; transform: scale(1.05); }
         
-        #adminPanel { background: #f8fafc; color: #1e293b; border-radius: 20px; padding: 15px; margin-top: 20px; display: none; }
-        .admin-section { background: white; padding: 12px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #ddd; }
+        /* ADMIN PANEL NEW STYLES */
+        #adminPanel { background: #f8fafc; color: #1e293b; border-radius: 20px; padding: 15px; margin-top: 20px; display: none; min-height: 80vh; }
+        .admin-nav { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
+        .admin-nav-btn { padding: 15px; border-radius: 12px; border: 1px solid #ddd; background: white; font-weight: bold; cursor: pointer; text-align: left; display: flex; align-items: center; justify-content: space-between; }
+        .admin-nav-btn:hover { background: #f1f5f9; }
+        .admin-section-content { display: none; }
+        .admin-section-content.active { display: block; }
+
+        .admin-card { background: white; padding: 12px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #ddd; }
         input, select { padding: 10px; border-radius: 8px; border: 1px solid #ccc; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
         .btn-gold { background: linear-gradient(45deg, var(--gold), #fbbf24); color: black; font-weight: 900; border: none; padding: 12px; border-radius: 10px; cursor: pointer; width: 100%; }
         .db-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
@@ -57,12 +61,10 @@
         </h1>
         <div style="width: 50px; height: 2px; background: var(--gold); margin: 10px auto;"></div>
     </div>
-
     <div class="tabs-tapatio">
         <button id="btnTabActivas" class="tab-btn-tapatio active" onclick="cambiarSeccion('activas')">1. Rifas en Proceso</button>
         <button id="btnTabHistorial" class="tab-btn-tapatio" onclick="cambiarSeccion('historial')">2. Historial de Rifas</button>
     </div>
-
     <div id="listaRifas" style="padding: 0 5px;"></div>
 </div>
 
@@ -79,7 +81,7 @@
         <div id="seccionCompra">
             <input type="text" id="nombre" placeholder="Nombre completo">
             <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)">
-            <button id="btnAzar" onclick="completarConAzar()" class="btn-random animate__animated animate__pulse animate__infinite" style="display:none; background: rgba(212, 175, 55, 0.1); color: var(--gold); border: 2px solid var(--gold); padding: 12px; border-radius: 12px; font-weight: 900; width: 100%; margin: 10px 0; cursor: pointer; font-size: 14px;">COMPLETAR COMBO AL AZAR 🎲</button>
+            <button id="btnAzar" onclick="completarConAzar()" class="btn-random" style="display:none; background: rgba(212, 175, 55, 0.1); color: var(--gold); border: 2px solid var(--gold); padding: 12px; border-radius: 12px; font-weight: 900; width: 100%; margin: 10px 0; cursor: pointer;">COMPLETAR COMBO AL AZAR 🎲</button>
             <div id="tablero" class="grid-numeros"></div>
             <button onclick="registrarPro()" class="btn-gold" style="margin-top:15px;">RESERVAR AHORA 🚀</button>
         </div>
@@ -87,37 +89,69 @@
 </div>
 
 <div id="adminPanel" class="container">
-    <h3 style="text-align:center; margin-top:0;">⚙️ PANEL DE CONTROL</h3>
-    <div class="admin-section" style="border: 2px solid var(--gold);">
-        <h4 style="margin:0 0 10px 0;">🆕 CREAR NUEVA RIFA</h4>
-        <input type="text" id="newRifaNombre" placeholder="Nombre de la Rifa">
-        <input type="number" id="newRifaTotal" placeholder="Total de números">
-        <input type="number" id="newRifaPrecio" placeholder="Precio ($)">
-        <input type="text" id="newRifaFoto" placeholder="URL de la imagen">
-        <button onclick="crearNuevaRifa()" class="btn-gold">LANZAR RIFA 🚀</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin:0;">⚙️ PANEL ELITE</h3>
+        <button onclick="volverInicio()" style="background:none; border:none; font-size: 20px; cursor:pointer;">✕</button>
     </div>
-    <div class="admin-section" style="background: #0f172a; border: 1px solid var(--gold);">
-        <h4 style="color: var(--gold); margin-top: 0; font-size: 14px; text-align: center;">📊 ESTADO: <span id="adminTituloRifa"></span></h4>
-        <div class="db-grid">
-            <div class="db-card"><h5>Vendidos</h5><p id="db-vendidos">0</p></div>
-            <div class="db-card" style="border-left-color: var(--info);"><h5>Meta Total</h5><p id="db-meta">$0</p></div>
-            <div class="db-card" style="border-left-color: var(--success);"><h5>En Caja</h5><p id="db-caja">$0</p></div>
-            <div class="db-card" style="border-left-color: var(--danger);"><h5>Por Cobrar</h5><p id="db-deuda">$0</p></div>
+    
+    <div class="admin-nav" id="adminMenuPrincipal">
+        <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-papelera')">
+            <span>🗑️ 1. PAPELERÍA DE RECICLAJE</span> ❯
+        </button>
+        <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-proceso')">
+            <span>📊 2. RIFAS EN PROCESO</span> ❯
+        </button>
+        <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-creador')">
+            <span>🆕 3. CREADOR DE NUEVA RIFA</span> ❯
+        </button>
+    </div>
+
+    <div id="sec-papelera" class="admin-section-content">
+        <button onclick="regresarMenuAdmin()" style="margin-bottom:10px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
+        <div class="admin-card">
+            <h4>🗑️ PAPELERA</h4>
+            <p style="font-size: 12px; color: #666;">Las rifas eliminadas aparecerán aquí próximamente.</p>
         </div>
-        <button onclick="exportarUsuariosCSV()" class="btn-csv">📥 DESCARGAR BASE (.CSV)</button>
     </div>
-    <div class="admin-section">
-        <h4>👥 CONTROL DE PAGOS</h4>
-        <div style="overflow-x:auto;">
-            <table style="width:100%; font-size:10px; text-align:center;">
-                <thead><tr><th>#</th><th>Nombre</th><th>Pago</th><th>X</th></tr></thead>
-                <tbody id="cuerpoTablaAdmin"></tbody>
-            </table>
+
+    <div id="sec-proceso" class="admin-section-content">
+        <button onclick="regresarMenuAdmin()" style="margin-bottom:10px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
+        <div class="admin-card" style="background: #0f172a; color:white;">
+            <h4 style="color: var(--gold); margin-top: 0;">ESTADO: <span id="adminTituloRifa">SELECCIONA RIFA</span></h4>
+            <div class="db-grid">
+                <div class="db-card"><h5>Vendidos</h5><p id="db-vendidos">0</p></div>
+                <div class="db-card" style="border-left-color: var(--success);"><h5>En Caja</h5><p id="db-caja">$0</p></div>
+                <div class="db-card" style="border-left-color: var(--danger);"><h5>Deuda</h5><p id="db-deuda">$0</p></div>
+                <div class="db-card" style="border-left-color: var(--info);"><h5>Total</h5><p id="db-meta">$0</p></div>
+            </div>
+            <button onclick="exportarUsuariosCSV()" class="btn-csv">📥 DESCARGAR CONTACTOS</button>
+        </div>
+        <div class="admin-card">
+            <h4>👥 CONTROL DE PAGOS</h4>
+            <div style="overflow-x:auto;">
+                <table style="width:100%; font-size:10px; text-align:center;">
+                    <thead><tr><th>#</th><th>Nombre</th><th>Pago</th><th>X</th></tr></thead>
+                    <tbody id="cuerpoTablaAdmin"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="sec-creador" class="admin-section-content">
+        <button onclick="regresarMenuAdmin()" style="margin-bottom:10px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
+        <div class="admin-card">
+            <h4>🆕 NUEVO SORTEO</h4>
+            <input type="text" id="newRifaNombre" placeholder="Nombre (ej: Ram 700)">
+            <input type="number" id="newRifaTotal" placeholder="Cantidad de números">
+            <input type="number" id="newRifaPrecio" placeholder="Precio ($)">
+            <input type="text" id="newRifaFoto" placeholder="URL Imagen">
+            <button onclick="crearNuevaRifa()" class="btn-gold">PUBLICAR RIFA 🚀</button>
         </div>
     </div>
 </div>
 
 <script>
+    // --- CONFIGURACIÓN FIREBASE (MANTENIDA) ---
     const firebaseConfig = {
         apiKey: "AIzaSyAchA8tvM4Hum-anybTex8nzLNxKa8yz_M",
         authDomain: "rifa01-6ff39.firebaseapp.com",
@@ -130,6 +164,19 @@
 
     let rifaActualID = "", seleccionados = [], compradores = [], configRifa = {}, vistaActiva = 'activas';
 
+    // --- LÓGICA DE NAVEGACIÓN ADMIN (NUEVA) ---
+    function verSeccionAdmin(id) {
+        document.getElementById('adminMenuPrincipal').style.display = 'none';
+        document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function regresarMenuAdmin() {
+        document.getElementById('adminMenuPrincipal').style.display = 'grid';
+        document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active'));
+    }
+
+    // --- LÓGICA DE CARGA Y RIFAS (MANTENIDA Y BLINDADA) ---
     function cambiarSeccion(tipo) {
         vistaActiva = tipo;
         document.getElementById('btnTabActivas').classList.toggle('active', tipo === 'activas');
@@ -142,23 +189,19 @@
         db.ref(path).on('value', snap => {
             const container = document.getElementById('listaRifas'); container.innerHTML = '';
             const data = snap.val(); 
-            if(!data) { container.innerHTML = '<p style="text-align:center; color:#94a3b8; margin-top:20px;">No hay rifas disponibles.</p>'; return; }
-            
+            if(!data) { container.innerHTML = '<p style="text-align:center; color:#94a3b8; margin-top:20px;">No hay rifas.</p>'; return; }
             for(let id in data) {
                 const conf = data[id].config;
                 const vendidos = data[id].participantes ? Object.keys(data[id].participantes).length : 0;
                 const porc = Math.floor((vendidos / conf.total) * 100);
-                
                 container.innerHTML += `
                     <div class="rifa-card" onclick="abrirRifa('${id}', '${vistaActiva}')">
                         <div class="rifa-badge">$${conf.precio}</div>
                         <img src="${conf.foto}">
                         <div class="rifa-info">
-                            <h4 style="margin:0; color:var(--gold); font-size: 16px;">${id}</h4>
-                            <p style="margin:5px 0; font-size: 10px; color: #94a3b8;">Progreso: ${porc}%</p>
-                            <div class="progress-container" style="margin:0; height:6px;">
-                                <div class="progress-bar" style="width:${porc}%"></div>
-                            </div>
+                            <h4 style="margin:0; color:var(--gold);">${id}</h4>
+                            <p style="margin:5px 0; font-size: 10px; color: #94a3b8;">Avance: ${porc}%</p>
+                            <div class="progress-container" style="margin:0; height:6px;"><div class="progress-bar" style="width:${porc}%"></div></div>
                         </div>
                     </div>`;
             }
@@ -169,8 +212,7 @@
         rifaActualID = id; seleccionados = [];
         document.getElementById('pantallaInicio').style.display = 'none';
         document.getElementById('rifaContenedor').style.display = 'block';
-        const path = tipo === 'activas' ? 'rifas_activas/' : 'historial_rifas/';
-        db.ref(path + id).on('value', snap => {
+        db.ref((tipo === 'activas' ? 'rifas_activas/' : 'historial_rifas/') + id).on('value', snap => {
             const data = snap.val(); if(!data) return;
             configRifa = data.config;
             compradores = data.participantes ? Object.entries(data.participantes).map(([k,v]) => ({id:k, ...v})) : [];
@@ -183,8 +225,6 @@
     function dibujarTablero() {
         const tab = document.getElementById('tablero'); tab.innerHTML = '';
         const ocupados = compradores.map(c => parseInt(c.numero));
-        const modo = parseInt(configRifa.modoVenta || 1);
-        document.getElementById('btnAzar').style.display = (seleccionados.length > 0 && seleccionados.length % modo !== 0) ? 'block' : 'none';
         for(let i=0; i < (configRifa.total || 100); i++) {
             const div = document.createElement('div');
             const ocu = ocupados.includes(i);
@@ -201,22 +241,19 @@
     }
 
     function completarConAzar() {
-        const modo = parseInt(configRifa.modoVenta || 1);
         const ocupados = compradores.map(c => parseInt(c.numero));
         audioExito.play();
-        while(seleccionados.length % modo !== 0) {
-            let numAzar = Math.floor(Math.random() * (configRifa.total || 100));
-            if(!ocupados.includes(numAzar) && !seleccionados.includes(numAzar)) seleccionados.push(numAzar);
-        }
+        let numAzar = Math.floor(Math.random() * (configRifa.total || 100));
+        while(ocupados.includes(numAzar) || seleccionados.includes(numAzar)) numAzar = Math.floor(Math.random() * (configRifa.total || 100));
+        seleccionados.push(numAzar);
         dibujarTablero();
     }
 
-    async function registrarPro() {
+    function registrarPro() {
         const n = document.getElementById('nombre').value, t = document.getElementById('telefono').value;
         if(seleccionados.length === 0 || !n || t.length < 10) return alert("Datos incompletos");
-        const numTxt = seleccionados.map(n => n < 10 ? "0"+n : n).join(', ');
         seleccionados.forEach(num => { db.ref('rifas_activas/'+rifaActualID+'/participantes').push({nombre:n, tel:t, numero:num, pagado:false}); });
-        window.open(`https://wa.me/523310711283?text=${encodeURIComponent("Hola! Reservé: " + numTxt + " para " + rifaActualID)}`, '_blank');
+        window.open(`https://wa.me/523310711283?text=${encodeURIComponent("Hola! Reservé para " + rifaActualID + ". Soy " + n)}`, '_blank');
         volverInicio();
     }
 
@@ -230,21 +267,27 @@
     function borrarP(id) { if(confirm("¿Liberar?")) db.ref('rifas_activas/' + rifaActualID + '/participantes/' + id).remove(); }
     
     function exportarUsuariosCSV() {
-        let csv = "data:text/csv;charset=utf-8,\uFEFFNOMBRE,TELEFONO,NUMEROS\r\n";
+        let csv = "data:text/csv;charset=utf-8,\uFEFFNOMBRE,TELEFONO,NUMERO\r\n";
         compradores.forEach(c => csv += `"${c.nombre}","${c.tel}","${c.numero}"\r\n`);
         const link = document.createElement("a"); link.setAttribute("href", encodeURI(csv)); link.setAttribute("download", "lista.csv"); link.click();
     }
 
     function actualizarAdmin() {
         const cuerpo = document.getElementById('cuerpoTablaAdmin'); cuerpo.innerHTML = '';
-        document.getElementById('adminTituloRifa').innerText = rifaActualID;
+        document.getElementById('adminTituloRifa').innerText = rifaActualID || "SELECCIONA UNA RIFA";
+        let ing = 0, deu = 0;
         compradores.sort((a,b) => a.numero - b.numero).forEach(c => {
+            if(c.pagado) ing += (configRifa.precio || 0); else deu += (configRifa.precio || 0);
             cuerpo.innerHTML += `<tr><td>#${c.numero<10?"0"+c.numero:c.numero}</td><td>${c.nombre}</td><td><button onclick="marcarPago('${c.id}', ${c.pagado})" style="background:${c.pagado?'var(--success)':'var(--danger)'};color:white;border:none;padding:4px 8px;border-radius:4px;">${c.pagado?'SI':'NO'}</button></td><td><button onclick="borrarP('${c.id}')" style="background:none;border:none;">🗑️</button></td></tr>`;
         });
+        document.getElementById('db-caja').innerText = "$" + ing;
+        document.getElementById('db-deuda').innerText = "$" + deu;
+        document.getElementById('db-meta').innerText = "$" + (ing+deu);
+        document.getElementById('db-vendidos').innerText = compradores.length;
     }
 
-    function accesoAdmin() { if(prompt("Clave:")==="rifa2369") document.getElementById('adminPanel').style.display='block'; }
-    function volverInicio() { document.getElementById('rifaContenedor').style.display='none'; document.getElementById('adminPanel').style.display='none'; document.getElementById('pantallaInicio').style.display='block'; cargarLista(); }
+    function accesoAdmin() { if(prompt("Clave:")==="rifa2369") { document.getElementById('adminPanel').style.display='block'; document.getElementById('pantallaInicio').style.display='none'; } }
+    function volverInicio() { document.getElementById('adminPanel').style.display='none'; document.getElementById('rifaContenedor').style.display='none'; document.getElementById('pantallaInicio').style.display='block'; cargarLista(); }
     function actualizarVisuales() { const total = configRifa.total || 100, ocu = compradores.length; document.getElementById('txtDisponibles').innerText = total - ocu; document.getElementById('bar').style.width = Math.floor((ocu/total)*100) + "%"; }
     
     cargarLista();
