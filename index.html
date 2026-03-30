@@ -35,6 +35,9 @@
         .numero.ocupado { opacity: 0.1; background: #000 !important; pointer-events: none; }
         .numero.seleccionado { background: var(--gold) !important; color: black !important; }
 
+        .btn-azar { background: #334155; color: var(--gold-light); border: 1px solid var(--gold); padding: 10px; border-radius: 10px; width: 100%; margin-bottom: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; }
+        .btn-azar:active { transform: scale(0.95); background: var(--gold); color: black; }
+
         #adminPanel { background: #f8fafc; color: #1e293b; border-radius: 20px; padding: 15px; margin-top: 20px; display: none; min-height: 80vh; }
         .admin-nav-btn { width: 100%; padding: 18px; border-radius: 15px; border: 1px solid #ddd; background: white; font-weight: bold; cursor: pointer; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
         .admin-section-content { display: none; }
@@ -76,9 +79,15 @@
             <span id="txtPorcentaje">0%</span>
         </div>
         <div class="progress-container" style="margin-bottom:20px;"><div id="bar" class="progress-bar"></div></div>
+        
         <div id="seccionCompra">
             <input type="text" id="nombre" placeholder="Nombre completo">
             <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)">
+            
+            <button class="btn-azar" onclick="seleccionarAlAzar()">
+                <span>🎲 SELECCIÓN AL AZAR</span>
+            </button>
+
             <div id="tablero" class="grid-numeros"></div>
             <button onclick="registrarPro()" class="btn-gold" style="margin-top:20px;">APARTAR MI LUGAR 🚀</button>
         </div>
@@ -144,6 +153,7 @@
 
     let rifaActualID = "", seleccionados = [], compradores = [], configRifa = {}, vistaActiva = 'activas';
 
+    // Timer
     setInterval(() => {
         document.querySelectorAll('.timer-display').forEach(el => {
             const target = new Date(el.dataset.fecha).getTime();
@@ -155,6 +165,26 @@
             el.innerText = `Faltan: ${d}d ${h}h ${m}m`;
         });
     }, 60000);
+
+    function seleccionarAlAzar() {
+        const limite = configRifa.numPorCombo || 1;
+        const ocupados = compradores.map(c => parseInt(c.numero));
+        const disponibles = [];
+        for(let i=0; i < configRifa.total; i++) { if(!ocupados.includes(i)) disponibles.push(i); }
+        
+        if(disponibles.length < limite) return alert("No hay suficientes números disponibles.");
+        
+        seleccionados = [];
+        while(seleccionados.length < limite) {
+            const index = Math.floor(Math.random() * disponibles.length);
+            const num = disponibles[index];
+            if(!seleccionados.includes(num)) {
+                seleccionados.push(num);
+                disponibles.splice(index, 1);
+            }
+        }
+        dibujarTablero();
+    }
 
     function cargarLista() {
         const path = vistaActiva === 'activas' ? 'rifas_activas' : 'historial_rifas';
