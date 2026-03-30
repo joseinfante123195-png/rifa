@@ -23,7 +23,8 @@
         .rifa-info { margin-left: 15px; flex: 1; }
         .rifa-badge { position: absolute; top: 0; right: 0; background: var(--gold); color: black; font-size: 10px; padding: 5px 12px; font-weight: bold; border-bottom-left-radius: 12px; text-transform: uppercase; }
         
-        .timer-text { font-size: 11px; color: var(--gold-light); font-weight: bold; margin-top: 4px; display: block; }
+        /* ESTILO RELOJ */
+        .timer-text { font-size: 11px; color: var(--gold-light); font-weight: bold; margin-top: 4px; display: block; background: rgba(212, 175, 55, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(212, 175, 55, 0.3); width: fit-content; }
         .winner-tag { color: var(--success); font-weight: bold; font-size: 11px; margin-top: 5px; border: 1px solid var(--success); padding: 2px 6px; border-radius: 4px; display: inline-block; }
         
         .progress-container { background: #0f172a; border-radius: 10px; height: 8px; margin-top: 8px; border: 1px solid #334155; overflow: hidden; }
@@ -82,6 +83,8 @@
         <img id="premioImgVer" src="" style="width:100%; border-radius:15px; border: 1px solid var(--gold); margin-bottom:15px;">
         <h2 id="tituloRifa" style="text-align:center; color:var(--gold-light); margin-bottom:10px;"></h2>
         
+        <div id="countdownRifaDetalle" class="timer-text" style="margin: 0 auto 15px auto; font-size: 14px;"></div>
+
         <div id="infoGanadorUsuario" style="display:none; background:#1e293b; border:1px solid var(--success); padding:10px; border-radius:10px; margin-bottom:15px; text-align:center;">
             <h4 style="color:var(--success); margin:0;">🏆 GANADOR</h4>
             <p id="txtGanadorDetalle" style="margin:5px 0; font-weight:bold;"></p>
@@ -182,12 +185,28 @@
 
     let rifaActualID = "", seleccionados = [], compradores = [], configRifa = {}, vistaActiva = 'activas', modoEdicion = false;
 
-    // SISTEMA DE TIMERS Y OFERTAS BLINDADO
+    // SISTEMA DE TIMERS (OFERTAS Y CUENTA REGRESIVA)
     setInterval(() => {
         const ahora = new Date().getTime();
+        
+        // 1. Ocultar ofertas expiradas
         document.querySelectorAll('.oferta-box').forEach(box => {
             const exp = new Date(box.dataset.expira).getTime();
             if(exp && ahora > exp) box.style.display = 'none';
+        });
+
+        // 2. Actualizar Relojes de Cuenta Regresiva
+        document.querySelectorAll('.countdown-live').forEach(el => {
+            const fSorteo = new Date(el.dataset.fecha).getTime();
+            const diff = fSorteo - ahora;
+            if (diff > 0) {
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                el.innerText = `Faltan: ${d}d ${h}h ${m}m`;
+            } else {
+                el.innerText = "¡Sorteo en curso!";
+            }
         });
     }, 1000);
 
@@ -201,14 +220,24 @@
                 const apartados = data[id].participantes ? Object.keys(data[id].participantes).length : 0;
                 const porc = Math.floor((apartados / conf.total) * 100);
                 const expT = conf.ofertaExpira ? new Date(conf.ofertaExpira).getTime() : 0;
+                
                 const ofertaHtml = (conf.ofertaTexto && (!expT || new Date().getTime() < expT)) 
                     ? `<div class="oferta-tag oferta-box" data-expira="${conf.ofertaExpira}">${conf.ofertaTexto}</div>` : '';
+                
                 const winTag = conf.winNombre ? `<div class="winner-tag">🏆 ${conf.winNombre} (#${conf.winNumero})</div>` : '';
+                
+                // NUEVO: Countdown y Porcentaje texto en lista
+                const countdownHtml = (vistaActiva === 'activas' && conf.fecha) 
+                    ? `<span class="timer-text countdown-live" data-fecha="${conf.fecha}">Calculando...</span>` : '';
 
                 container.innerHTML += `<div class="rifa-card" onclick="abrirRifa('${id}', '${vistaActiva}')">
                     <div class="rifa-badge">$${conf.precio}</div><img src="${conf.foto}"><div class="rifa-info">
-                    <h4 style="margin:0; color:var(--gold);">${id}</h4>${ofertaHtml}${winTag}
-                    <div class="progress-container"><div class="progress-bar" style="width:${porc}%"></div></div></div></div>`;
+                    <h4 style="margin:0; color:var(--gold);">${id}</h4>
+                    ${ofertaHtml}${winTag}${countdownHtml}
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
+                        <div class="progress-container" style="flex:1;"><div class="progress-bar" style="width:${porc}%"></div></div>
+                        <span style="font-size:10px; margin-left:8px; font-weight:bold; color:var(--gold-light);">${porc}%</span>
+                    </div></div></div>`;
             }
         });
     }
@@ -224,6 +253,14 @@
             document.getElementById('tituloRifa').innerText = id;
             document.getElementById('premioImgVer').src = configRifa.foto;
             
+            // Reloj en detalle
+            const cdDetalle = document.getElementById('countdownRifaDetalle');
+            if(tipo === 'activas' && configRifa.fecha) {
+                cdDetalle.style.display = 'block';
+                cdDetalle.className = 'timer-text countdown-live';
+                cdDetalle.dataset.fecha = configRifa.fecha;
+            } else { cdDetalle.style.display = 'none'; }
+
             if(tipo === 'historial' || configRifa.winNombre) {
                 document.getElementById('seccionCompra').style.display = 'none';
                 document.getElementById('barraProgresoUser').style.display = 'none';
@@ -372,7 +409,6 @@
     function enviarAPapelera(id) { if(confirm("¿A papelera?")) db.ref('rifas_activas/'+id).once('value', s => { db.ref('papelera/'+id).set(s.val()).then(() => db.ref('rifas_activas/'+id).remove()); }); }
     function cargarPapelera() { db.ref('papelera').on('value', snap => { const container = document.getElementById('listaPapelera'); container.innerHTML = ''; const data = snap.val(); for(let id in data) container.innerHTML += `<div class="admin-card" style="display:flex; justify-content:space-between;"><strong>${id}</strong><button onclick="recuperarRifa('${id}')">🔄</button></div>`; }); }
     function recuperarRifa(id) { db.ref('papelera/'+id).once('value', s => { db.ref('rifas_activas/'+id).set(s.val()).then(() => db.ref('papelera/'+id).remove()); }); }
-    
     function cambiarEstadoPago(idsStr, est) { idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).update({pagado:!est})); }
     function eliminarVenta(idsStr) { if(confirm("¿Liberar?")) idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).remove()); }
     function verSeccionAdmin(id) { document.getElementById('adminMenuPrincipal').style.display='none'; document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id==='sec-proceso') cargarListaGestion(); if(id==='sec-papelera') cargarPapelera(); }
