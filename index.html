@@ -239,4 +239,15 @@
         const cuerpo = document.getElementById('cuerpoTablaAdmin'); cuerpo.innerHTML = '';
         document.getElementById('adminTituloRifa').innerText = rifaActualID;
         compradores.sort((a,b) => a.numero - b.numero).forEach(c => {
-            cuerpo.innerHTML += `<tr><td>#${c.numero<10?"0"+c.numero:c.numero}</td><td>${c.nombre}</td><td><button onclick="marcarPago('${c.id}', ${c.pagado})" style="background:${c.pagado?'var(--success)':'var(--danger)'};color:white;
+            cuerpo.innerHTML += `<tr><td>#${c.numero<10?"0"+c.numero:c.numero}</td><td>${c.nombre}</td><td><button onclick="marcarPago('${c.id}', ${c.pagado})" style="background:${c.pagado?'var(--success)':'var(--danger)'};color:white;border:none;padding:4px 8px;border-radius:4px;">${c.pagado?'SI':'NO'}</button></td><td><button onclick="borrarP('${c.id}')" style="background:none;border:none;">🗑️</button></td></tr>`;
+        });
+    }
+
+    function accesoAdmin() { if(prompt("Clave:")==="rifa2369") document.getElementById('adminPanel').style.display='block'; }
+    function volverInicio() { document.getElementById('rifaContenedor').style.display='none'; document.getElementById('adminPanel').style.display='none'; document.getElementById('pantallaInicio').style.display='block'; cargarLista(); }
+    function actualizarVisuales() { const total = configRifa.total || 100, ocu = compradores.length; document.getElementById('txtDisponibles').innerText = total - ocu; document.getElementById('bar').style.width = Math.floor((ocu/total)*100) + "%"; }
+    
+    cargarLista();
+</script>
+</body>
+</html>
