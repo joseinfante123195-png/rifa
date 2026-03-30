@@ -41,7 +41,7 @@
 
         .btn-azar { background: #334155; color: var(--gold-light); border: 1px solid var(--gold); padding: 10px; border-radius: 10px; width: 100%; margin-bottom: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; }
 
-        #adminPanel { background: #f8fafc; color: #1e293b; border-radius: 20px; padding: 15px; margin-top: 20px; display: none; min-height: 80vh; }
+        #adminPanel { background: #f8fafc; color: #1e293b; border-radius: 20px; padding: 15px; margin-top: 20px; display: none; min-height: 80vh; overflow-y: auto;}
         .admin-nav-btn { width: 100%; padding: 18px; border-radius: 15px; border: 1px solid #ddd; background: white; font-weight: bold; cursor: pointer; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
         .admin-section-content { display: none; }
         .admin-section-content.active { display: block; }
@@ -51,6 +51,13 @@
         .btn-gold { background: linear-gradient(45deg, var(--gold), #fbbf24); color: black; font-weight: 900; border: none; padding: 15px; border-radius: 12px; cursor: pointer; width: 100%; }
         .btn-finish { background: #000; color: var(--gold); border: 2px solid var(--gold); padding: 15px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: 900; margin-top: 10px; }
         label { display: block; font-size: 11px; font-weight: bold; color: #64748b; margin-bottom: 4px; }
+        
+        /* Estilos Finanzas */
+        .finanzas-header { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .finanzas-stat { background: #f1f5f9; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0; }
+        .finanzas-stat span { display: block; font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; }
+        .finanzas-stat strong { font-size: 18px; color: #1e293b; }
+        .btn-csv { background: #000; color: white; padding: 10px; border-radius: 10px; border: none; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -114,16 +121,19 @@
     <div id="sec-proceso" class="admin-section-content">
         <button onclick="regresarMenuAdmin()" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
         <div id="listaGestionRifas"></div>
-        <div id="detalleGestion" style="display:none; border-top: 2px solid #ddd; padding-top: 15px;">
-            <div class="admin-card" style="background: #0f172a; color:white; margin-bottom:10px;">
-                <h4 id="adminTituloRifa" style="color:var(--gold); margin:0 0 10px 0;"></h4>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div style="background:#1e293b; padding:10px; border-radius:10px;"><h5>CAJA TOTAL</h5><p id="db-caja" style="font-weight:bold; color:var(--success);"></p></div>
-                    <div style="background:#1e293b; padding:10px; border-radius:10px;"><h5>DEUDA TOTAL</h5><p id="db-deuda" style="font-weight:bold; color:var(--danger);"></p></div>
-                </div>
+    </div>
+
+    <div id="sec-finanzas" class="admin-section-content">
+        <button onclick="verSeccionAdmin('sec-proceso')" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR A PROCESOS</button>
+        <div class="admin-card">
+            <h3 id="finanzasNombreRifa" style="margin-top:0; color:var(--gold);"></h3>
+            <div class="finanzas-header">
+                <div class="finanzas-stat"><span>Caja Actual</span><strong id="fin-caja" style="color:var(--success)">$0</strong></div>
+                <div class="finanzas-stat"><span>Por Cobrar</span><strong id="fin-deuda" style="color:var(--danger)">$0</strong></div>
             </div>
-            <div id="listaPagosSmart" class="admin-card" style="padding:0;"></div>
+            <button onclick="descargarCSV()" class="btn-csv">📥 DESCARGAR BASE DE DATOS (.CSV)</button>
         </div>
+        <div id="listaPagosFinanzas" class="admin-card" style="padding:0;"></div>
     </div>
 
     <div id="sec-creador" class="admin-section-content">
@@ -228,7 +238,6 @@
                 document.getElementById('seccionCompra').style.display = 'block';
                 document.getElementById('barraProgresoUser').style.display = 'block';
                 document.getElementById('infoGanadorUsuario').style.display = 'none';
-                document.getElementById('galeriaEvidencia').innerHTML = '';
                 dibujarTablero();
             }
         });
@@ -271,7 +280,6 @@
         dibujarTablero();
     }
 
-    // MENSAJE DE WHATSAPP RESTAURADO SEGÚN TU PREFERENCIA
     function registrarPro() {
         const n = document.getElementById('nombre').value, t = document.getElementById('telefono').value;
         const req = configRifa.numPorCombo || 1;
@@ -279,11 +287,8 @@
         if(seleccionados.length !== req) return alert("Selecciona tus números");
         const vID = Date.now();
         seleccionados.forEach(num => { db.ref('rifas_activas/'+rifaActualID+'/participantes').push({ nombre:n, tel:t, numero:num, pagado:false, ventaID: vID }); });
-        
-        // Mensaje restaurado:
         const msj = `Aparté el # ${seleccionados.join(', ')} para ${rifaActualID}. Soy ${n}. ¿Me pasas info de pago?`;
         window.open(`https://wa.me/523310711283?text=${encodeURIComponent(msj)}`, '_blank');
-        
         volverInicio();
     }
 
@@ -295,6 +300,68 @@
         if(id === 'sec-proceso') cargarListaGestion();
         if(id === 'sec-papelera') cargarPapelera();
     }
+
+    function abrirFinanzas(id) {
+        rifaActualID = id;
+        document.getElementById('finanzasNombreRifa').innerText = id;
+        verSeccionAdmin('sec-finanzas');
+        db.ref('rifas_activas/' + id).on('value', snap => {
+            const data = snap.val(); if(!data) return;
+            configRifa = data.config;
+            compradores = data.participantes ? Object.entries(data.participantes).map(([k,v]) => ({id:k, ...v})) : [];
+            actualizarFinanzasUI();
+        });
+    }
+
+    function actualizarFinanzasUI() {
+        const container = document.getElementById('listaPagosFinanzas'); container.innerHTML = '';
+        let caja = 0, deuda = 0;
+        const agrupadas = {};
+        compradores.forEach(c => {
+            if(!agrupadas[c.ventaID]) agrupadas[c.ventaID] = { nombre:c.nombre, tel:c.tel, nums:[], pagado:c.pagado, ids:[] };
+            agrupadas[c.ventaID].nums.push(c.numero);
+            agrupadas[c.ventaID].ids.push(c.id);
+        });
+        for(let vID in agrupadas) {
+            const v = agrupadas[vID];
+            if(v.pagado) caja += configRifa.precio; else deuda += configRifa.precio;
+            container.innerHTML += `
+            <div style="padding:12px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                <div><strong>${v.nombre}</strong> <small style="color:#64748b;">(${v.tel})</small><br><small>#${v.nums.join(',')}</small></div>
+                <div style="display:flex; gap:5px;">
+                    <button onclick="cambiarEstadoPago('${v.ids.join(',')}', ${v.pagado})" style="background:${v.pagado?'var(--success)':'var(--danger)'}; color:white; border:none; padding:6px 10px; border-radius:8px; font-weight:bold; font-size:10px;">${v.pagado?'PAGADO':'DEBE'}</button>
+                    <button onclick="eliminarVenta('${v.ids.join(',')}')" style="background:#f1f5f9; border:none; padding:6px; border-radius:8px;">🔓 LIBERAR</button>
+                </div>
+            </div>`;
+        }
+        document.getElementById('fin-caja').innerText = "$" + caja;
+        document.getElementById('fin-deuda').innerText = "$" + deuda;
+    }
+
+    function descargarCSV() {
+        let csv = "Nombre,Telefono,Numeros,Estado\n";
+        const agrupadas = {};
+        compradores.forEach(c => {
+            if(!agrupadas[c.ventaID]) agrupadas[c.ventaID] = { nombre:c.nombre, tel:c.tel, nums:[], pagado:c.pagado };
+            agrupadas[c.ventaID].nums.push(c.numero);
+        });
+        for(let id in agrupadas) {
+            const v = agrupadas[id];
+            csv += `"${v.nombre}","${v.tel}","${v.nums.join('-')}","${v.pagado?'Pagado':'Pendiente'}"\n`;
+        }
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', `Base_Datos_${rifaActualID}.csv`);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function cambiarEstadoPago(idsStr, est) { idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).update({pagado:!est})); }
+    function eliminarVenta(idsStr) { if(confirm("¿Liberar estos números para que alguien más los compre?")) idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).remove()); }
 
     function editarRifa(id) {
         modoEdicion = true; rifaActualID = id;
@@ -312,7 +379,6 @@
             document.getElementById('winNumero').value = conf.winNumero || "";
             document.getElementById('winFotos').value = conf.winFotos || "";
             document.getElementById('creadorTitulo').innerText = "Editar Rifa";
-            document.getElementById('btnGuardarRifa').innerText = "GUARDAR CAMBIOS 💾";
             document.getElementById('seccionFinalizar').style.display = 'block';
             verSeccionAdmin('sec-creador');
         });
@@ -326,7 +392,6 @@
                 const data = snap.val();
                 data.config.winNombre = wn; data.config.winNumero = wnum;
                 data.config.winFotos = document.getElementById('winFotos').value;
-                data.config.ofertaTexto = "";
                 db.ref('historial_rifas/' + rifaActualID).set(data).then(() => {
                     db.ref('rifas_activas/' + rifaActualID).remove();
                     alert("¡Finalizada!"); regresarMenuAdmin();
@@ -339,7 +404,7 @@
         const n = document.getElementById('newRifaNombre').value, t = document.getElementById('newRifaTotal').value, p = document.getElementById('newRifaPrecio').value, f = document.getElementById('newRifaFoto').value, d = document.getElementById('newRifaFecha').value;
         if(!n || !t || !p || !f || !d) return alert("Llenar todo");
         const pay = { foto:f, precio:parseInt(p), total:parseInt(t), numPorCombo:parseInt(document.getElementById('newRifaModo').value), fecha:d, ofertaTexto:document.getElementById('ofertaTexto').value, ofertaExpira:document.getElementById('ofertaExpira').value };
-        db.ref('rifas_activas/' + n + '/config').update(pay).then(() => { alert("Éxito"); regresarMenuAdmin(); });
+        db.ref('rifas_activas/' + n + '/config').update(pay).then(() => { alert("Guardado"); regresarMenuAdmin(); });
     }
 
     function cargarListaGestion() {
@@ -347,45 +412,23 @@
             const container = document.getElementById('listaGestionRifas'); container.innerHTML = '';
             const data = snap.val(); if(!data) return;
             for(let id in data) {
-                container.innerHTML += `<div class="admin-card" style="display:flex; justify-content:space-between; align-items:center;"><strong onclick="abrirRifaAdmin('${id}')" style="cursor:pointer; color:var(--info);">${id}</strong><div><button onclick="editarRifa('${id}')" style="background:#eee; border:none; padding:8px 12px; border-radius:8px; margin-right:8px; font-weight:bold;">EDITAR</button><button onclick="enviarAPapelera('${id}')" style="background:none; border:none;">🗑️</button></div></div>`;
+                container.innerHTML += `
+                <div class="admin-card" style="display:flex; flex-direction:column; gap:10px;">
+                    <strong style="color:var(--dark-100); font-size:16px;">${id}</strong>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 40px; gap:8px;">
+                        <button onclick="abrirFinanzas('${id}')" style="background:var(--success); color:white; border:none; padding:10px; border-radius:8px; font-weight:bold;">💰 FINANZAS</button>
+                        <button onclick="editarRifa('${id}')" style="background:#eee; border:none; padding:10px; border-radius:8px; font-weight:bold;">✏️ EDITAR</button>
+                        <button onclick="enviarAPapelera('${id}')" style="background:none; border:none; font-size:18px;">🗑️</button>
+                    </div>
+                </div>`;
             }
         });
     }
 
-    function abrirRifaAdmin(id) {
-        rifaActualID = id; document.getElementById('detalleGestion').style.display = 'block';
-        document.getElementById('adminTituloRifa').innerText = id;
-        db.ref('rifas_activas/' + id).on('value', snap => {
-            const data = snap.val(); if(!data) return;
-            configRifa = data.config;
-            compradores = data.participantes ? Object.entries(data.participantes).map(([k,v]) => ({id:k, ...v})) : [];
-            actualizarListaPagosAdmin();
-        });
-    }
-
-    function actualizarListaPagosAdmin() {
-        const container = document.getElementById('listaPagosSmart'); container.innerHTML = '';
-        let ing = 0, deu = 0;
-        const agrupadas = {};
-        compradores.forEach(c => {
-            if(!agrupadas[c.ventaID]) agrupadas[c.ventaID] = { nombre:c.nombre, nums:[], pagado:c.pagado, ids:[] };
-            agrupadas[c.ventaID].nums.push(c.numero);
-            agrupadas[c.ventaID].ids.push(c.id);
-        });
-        for(let vID in agrupadas) {
-            const v = agrupadas[vID];
-            if(v.pagado) ing += configRifa.precio; else deu += configRifa.precio;
-            container.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;"><div><strong>${v.nombre}</strong><br><small>#${v.nums.join(',')}</small></div><div><button onclick="cambiarEstadoPago('${v.ids.join(',')}', ${v.pagado})" style="background:${v.pagado?'var(--success)':'var(--danger)'}; color:white; border:none; padding:5px 10px; border-radius:5px;">${v.pagado?'PAGADO':'DEBE'}</button><button onclick="eliminarVenta('${v.ids.join(',')}')" style="margin-left:5px; border:none; background:none;">🗑️</button></div></div>`;
-        }
-        document.getElementById('db-caja').innerText = "$"+ing; document.getElementById('db-deuda').innerText = "$"+deu;
-    }
-
-    function cambiarEstadoPago(idsStr, est) { idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).update({pagado:!est})); }
-    function eliminarVenta(idsStr) { if(confirm("Liberar?")) idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).remove()); }
     function enviarAPapelera(id) { if(confirm("Papelera?")) db.ref('rifas_activas/'+id).once('value', s => { const d = s.val(); d.fechaEliminado = Date.now(); db.ref('papelera/'+id).set(d).then(()=>db.ref('rifas_activas/'+id).remove()); }); }
     function cargarPapelera() { db.ref('papelera').once('value', snap => { const container = document.getElementById('listaPapelera'); container.innerHTML = ''; const data = snap.val(); if(!data) return; for(let id in data) container.innerHTML += `<div class="admin-card" style="display:flex; justify-content:space-between;"><strong>${id}</strong><button onclick="recuperarRifa('${id}')">🔄</button></div>`; }); }
     function recuperarRifa(id) { db.ref('papelera/'+id).once('value', s => { const d = s.val(); delete d.fechaEliminado; db.ref('rifas_activas/'+id).set(d).then(()=>db.ref('papelera/'+id).remove()); }); }
-    function regresarMenuAdmin() { modoEdicion = false; document.getElementById('adminMenuPrincipal').style.display='block'; document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); document.getElementById('detalleGestion').style.display='none'; document.getElementById('seccionFinalizar').style.display='none'; }
+    function regresarMenuAdmin() { modoEdicion = false; document.getElementById('adminMenuPrincipal').style.display='block'; document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); document.getElementById('seccionFinalizar').style.display='none'; }
     function accesoAdmin() { if(prompt("Clave:")==="rifa2369") { document.getElementById('adminPanel').style.display='block'; document.getElementById('pantallaInicio').style.display='none'; } }
     function volverInicio() { document.getElementById('adminPanel').style.display='none'; document.getElementById('rifaContenedor').style.display='none'; document.getElementById('pantallaInicio').style.display='block'; cargarLista(); }
     function cambiarSeccion(t) { vistaActiva = t; document.getElementById('btnTabActivas').classList.toggle('active', t==='activas'); document.getElementById('btnTabHistorial').classList.toggle('active', t==='historial'); cargarLista(); }
