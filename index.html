@@ -15,10 +15,13 @@
         
         #btnAdminOculto { position: fixed; top: 0; right: 0; width: 60px; height: 60px; background: none; border: none; z-index: 9999; opacity: 0; }
         
+        /* TARJETAS PREMIUM */
         .rifa-card { background: #1e293b; border-radius: 15px; padding: 12px; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; border: 1px solid #334155; position: relative; overflow: hidden; }
-        .rifa-card img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; border: 1px solid var(--gold); }
+        .rifa-card img { width: 90px; height: 90px; border-radius: 10px; object-fit: cover; border: 1px solid var(--gold); }
         .rifa-info { margin-left: 15px; flex: 1; }
         .rifa-badge { position: absolute; top: 0; right: 0; background: var(--gold); color: black; font-size: 10px; padding: 5px 12px; font-weight: bold; border-bottom-left-radius: 12px; text-transform: uppercase; }
+        
+        .timer-text { font-size: 11px; color: var(--gold-light); font-weight: bold; margin-top: 4px; display: block; }
         
         .progress-container { background: #0f172a; border-radius: 10px; height: 8px; margin-top: 8px; border: 1px solid #334155; overflow: hidden; }
         .progress-bar { background: linear-gradient(90deg, var(--gold), #fbbf24); height: 100%; width: 0%; transition: 0.8s; }
@@ -32,6 +35,7 @@
         .numero.ocupado { opacity: 0.1; background: #000 !important; pointer-events: none; }
         .numero.seleccionado { background: var(--gold) !important; color: black !important; }
 
+        /* ADMIN */
         #adminPanel { background: #f8fafc; color: #1e293b; border-radius: 20px; padding: 15px; margin-top: 20px; display: none; min-height: 80vh; }
         .admin-nav-btn { width: 100%; padding: 18px; border-radius: 15px; border: 1px solid #ddd; background: white; font-weight: bold; cursor: pointer; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
         .admin-section-content { display: none; }
@@ -116,6 +120,7 @@
             <label>Total de números</label><input type="number" id="newRifaTotal">
             <label>Precio Final ($)</label><input type="number" id="newRifaPrecio">
             <label>Link de foto</label><input type="text" id="newRifaFoto">
+            <label>Fecha y Hora del Sorteo</label><input type="datetime-local" id="newRifaFecha">
             <label>Modo de Venta</label>
             <select id="newRifaModo">
                 <option value="1">Venta Individual (1 boleto)</option>
@@ -140,6 +145,20 @@
 
     let rifaActualID = "", seleccionados = [], compradores = [], configRifa = {}, vistaActiva = 'activas';
 
+    // Función para actualizar contadores en tiempo real
+    setInterval(() => {
+        document.querySelectorAll('.timer-display').forEach(el => {
+            const target = new Date(el.dataset.fecha).getTime();
+            const ahora = new Date().getTime();
+            const diff = target - ahora;
+            if(diff <= 0) { el.innerText = "¡Sorteo en curso! 🏁"; return; }
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            el.innerText = `Faltan: ${d}d ${h}h ${m}m`;
+        });
+    }, 60000);
+
     function cargarLista() {
         const path = vistaActiva === 'activas' ? 'rifas_activas' : 'historial_rifas';
         db.ref(path).on('value', snap => {
@@ -149,7 +168,19 @@
                 const conf = data[id].config;
                 const vendidos = data[id].participantes ? Object.keys(data[id].participantes).length : 0;
                 const porc = Math.floor((vendidos / conf.total) * 100);
-                container.innerHTML += `<div class="rifa-card" onclick="abrirRifa('${id}', '${vistaActiva}')"><div class="rifa-badge">$${conf.precio}</div><img src="${conf.foto}"><div class="rifa-info"><h4 style="margin:0; color:var(--gold);">${id}</h4><div class="progress-container"><div class="progress-bar" style="width:${porc}%"></div></div><p style="margin-top:5px; font-size:10px;">${porc}% Vendido</p></div></div>`;
+                const fechaLegible = conf.fecha ? new Date(conf.fecha).toLocaleString([], {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}) : 'Próximamente';
+                
+                container.innerHTML += `
+                <div class="rifa-card" onclick="abrirRifa('${id}', '${vistaActiva}')">
+                    <div class="rifa-badge">$${conf.precio}</div>
+                    <img src="${conf.foto}">
+                    <div class="rifa-info">
+                        <h4 style="margin:0; color:var(--gold); font-size:16px;">${id}</h4>
+                        <span style="font-size:10px; color:#94a3b8;">📅 ${fechaLegible}</span>
+                        <span class="timer-text timer-display" data-fecha="${conf.fecha || ''}">Cargando...</span>
+                        <div class="progress-container"><div class="progress-bar" style="width:${porc}%"></div></div>
+                    </div>
+                </div>`;
             }
         });
     }
@@ -165,7 +196,6 @@
             db.ref('rifas_activas/'+rifaActualID+'/participantes').push({ nombre:n, tel:t, numero:num, pagado:false, ventaID: ventaID }); 
         });
 
-        // MENSAJE DE WHATSAPP MEJORADO
         const tipoVenta = requiere > 1 ? `Combo de ${requiere} números` : "Boleto Individual";
         const numsTexto = seleccionados.sort((a,b)=>a-b).join(', ');
         const mensajeWA = `Hola! Acabo de apartar mi lugar en *${rifaActualID}* 🍀%0A%0A*Detalles:*%0A👤 Nombre: ${n}%0A🎟️ Modalidad: ${tipoVenta}%0A🔢 Números: ${numsTexto}%0A💰 Total a pagar: *$${configRifa.precio}*%0A%0A_Quedo atento a las cuentas para realizar el pago._`;
@@ -192,9 +222,15 @@
         document.getElementById('db-deuda').innerText = "$" + deu;
     }
 
+    function crearNuevaRifa() {
+        const n = document.getElementById('newRifaNombre').value, t = document.getElementById('newRifaTotal').value, p = document.getElementById('newRifaPrecio').value, f = document.getElementById('newRifaFoto').value, m = document.getElementById('newRifaModo').value, d = document.getElementById('newRifaFecha').value;
+        if(!n || !t || !p || !f || !d) return alert("Llena todos los campos, incluyendo la fecha.");
+        db.ref('rifas_activas/' + n + '/config').set({ foto: f, precio: parseInt(p), total: parseInt(t), numPorCombo: parseInt(m), fecha: d }).then(() => { alert("¡Rifa con Sorteo Lanzada!"); regresarMenuAdmin(); });
+    }
+
+    // --- FUNCIONES MANTENIDAS ---
     function cambiarEstadoPago(idsStr, estActual) { idsStr.split(',').forEach(id => { db.ref('rifas_activas/' + rifaActualID + '/participantes/' + id).update({ pagado: !estActual }); }); }
     function eliminarVenta(idsStr) { if(confirm("¿Liberar estos números?")) { idsStr.split(',').forEach(id => { db.ref('rifas_activas/' + rifaActualID + '/participantes/' + id).remove(); }); } }
-    function crearNuevaRifa() { const n = document.getElementById('newRifaNombre').value, t = document.getElementById('newRifaTotal').value, p = document.getElementById('newRifaPrecio').value, f = document.getElementById('newRifaFoto').value, m = document.getElementById('newRifaModo').value; if(!n || !t || !p || !f) return alert("Llena todo"); db.ref('rifas_activas/' + n + '/config').set({ foto: f, precio: parseInt(p), total: parseInt(t), numPorCombo: parseInt(m) }).then(() => { alert("Rifa Lanzada!"); regresarMenuAdmin(); }); }
     function abrirRifa(id, tipo) { rifaActualID = id; seleccionados = []; document.getElementById('pantallaInicio').style.display = 'none'; document.getElementById('rifaContenedor').style.display = 'block'; db.ref((tipo === 'activas' ? 'rifas_activas/' : 'historial_rifas/') + id).on('value', snap => { const data = snap.val(); if(!data) return; configRifa = data.config; compradores = data.participantes ? Object.entries(data.participantes).map(([k,v]) => ({id:k, ...v})) : []; document.getElementById('tituloRifa').innerText = id; document.getElementById('premioImgVer').src = configRifa.foto; dibujarTablero(); }); }
     function dibujarTablero() { const tab = document.getElementById('tablero'); tab.innerHTML = ''; const ocupados = compradores.map(c => parseInt(c.numero)); for(let i=0; i < (configRifa.total || 100); i++) { const div = document.createElement('div'); const ocu = ocupados.includes(i); div.className = 'numero' + (ocu ? ' ocupado' : (seleccionados.includes(i) ? ' seleccionado' : '')); div.innerText = i < 10 ? "0" + i : i; if(!ocu) div.onclick = () => { const limite = configRifa.numPorCombo || 1; if(seleccionados.includes(i)) seleccionados = seleccionados.filter(n => n !== i); else if(seleccionados.length < limite) seleccionados.push(i); dibujarTablero(); }; tab.appendChild(div); } document.getElementById('txtDisponibles').innerText = configRifa.total - ocupados.length; document.getElementById('txtPorcentaje').innerText = Math.floor((ocupados.length/configRifa.total)*100) + "%"; document.getElementById('bar').style.width = Math.floor((ocupados.length/configRifa.total)*100) + "%"; }
     function abrirRifaAdmin(id) { rifaActualID = id; document.getElementById('detalleGestion').style.display = 'block'; document.getElementById('adminTituloRifa').innerText = id; db.ref('rifas_activas/' + id).on('value', snap => { const data = snap.val(); if(!data) return; configRifa = data.config; compradores = data.participantes ? Object.entries(data.participantes).map(([k,v]) => ({id:k, ...v})) : []; actualizarListaPagosAdmin(); }); }
