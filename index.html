@@ -84,13 +84,11 @@
         <img id="premioImgVer" src="" style="width:100%; border-radius:15px; border: 1px solid var(--gold); margin-bottom:15px;">
         <h2 id="tituloRifa" style="text-align:center; color:var(--gold-light); margin-bottom:10px;"></h2>
         <div id="countdownRifaDetalle" class="timer-text" style="margin: 0 auto 15px auto; font-size: 14px;"></div>
-
         <div id="infoGanadorUsuario" style="display:none; background:#1e293b; border:1px solid var(--success); padding:10px; border-radius:10px; margin-bottom:15px; text-align:center;">
             <h4 style="color:var(--success); margin:0;">🏆 GANADOR</h4>
             <p id="txtGanadorDetalle" style="margin:5px 0; font-weight:bold;"></p>
         </div>
         <div id="galeriaEvidencia" style="display:flex; gap:10px; overflow-x:auto; margin-bottom:15px;"></div>
-        
         <div id="barraProgresoUser">
             <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:bold; margin-bottom:5px;">
                 <span>DISPONIBLES: <span id="txtDisponibles" style="color:var(--gold)">0</span></span>
@@ -99,7 +97,6 @@
             <div class="progress-container"><div id="bar" class="progress-bar"></div></div>
             <div id="leyendaComboRifa" class="combo-leyenda"></div>
         </div>
-        
         <div id="seccionCompra" style="margin-top:20px;">
             <input type="text" id="nombre" placeholder="Nombre completo">
             <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)">
@@ -115,18 +112,15 @@
         <h3>⚙️ ADMIN</h3>
         <button onclick="volverInicio()" style="background:none; border:none; font-size: 20px;">✕</button>
     </div>
-    
     <div id="adminMenuPrincipal">
         <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-proceso')"><span>📊 GESTIÓN</span> ❯</button>
         <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-creador')"><span>🆕 NUEVA RIFA</span> ❯</button>
         <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-papelera')"><span>🗑️ PAPELERA</span> ❯</button>
     </div>
-
     <div id="sec-proceso" class="admin-section-content">
         <button onclick="regresarMenuAdmin()" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
         <div id="listaGestionRifas"></div>
     </div>
-
     <div id="sec-finanzas" class="admin-section-content">
         <button onclick="verSeccionAdmin('sec-proceso')" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
         <div class="admin-card">
@@ -144,7 +138,6 @@
         </div>
         <div id="listaPagosFinanzas" class="admin-card" style="padding:0;"></div>
     </div>
-
     <div id="sec-creador" class="admin-section-content">
         <button onclick="regresarMenuAdmin()" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ CANCELAR</button>
         <div class="admin-card">
@@ -155,13 +148,11 @@
             <label>URL Foto</label><input type="text" id="newRifaFoto">
             <label>Fecha Sorteo</label><input type="datetime-local" id="newRifaFecha">
             <label>Combo de Selección</label><select id="newRifaModo"><option value="1">Individual</option><option value="2">Combo 2</option><option value="4">Combo 4</option><option value="5">Combo 5</option></select>
-            
             <div style="background:#fff5f5; padding:12px; border-radius:12px; border:1px solid #feb2b2; margin-top:10px;">
                 <label style="color:#c53030">Oferta</label><input type="text" id="ofertaTexto">
                 <label style="color:#c53030">Expira</label><input type="datetime-local" id="ofertaExpira">
                 <button onclick="document.getElementById('ofertaTexto').value='';document.getElementById('ofertaExpira').value='';" style="background:#e53e3e; color:white; border:none; padding:8px; border-radius:8px; width:100%; font-weight:bold; cursor:pointer;">❌ ELIMINAR OFERTA</button>
             </div>
-
             <div id="seccionFinalizar" style="display:none; background:#f0f9ff; padding:12px; border-radius:12px; border:1px solid #bae6fd; margin-top:15px;">
                 <h4 style="color:#0369a1; margin-top:0;">🏆 GANADOR</h4>
                 <label>Nombre</label><input type="text" id="winNombre">
@@ -172,7 +163,6 @@
             <button onclick="crearNuevaRifa()" class="btn-gold" style="margin-top:20px;">GUARDAR RIFA 🚀</button>
         </div>
     </div>
-
     <div id="sec-papelera" class="admin-section-content">
         <button onclick="regresarMenuAdmin()" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
         <div id="listaPapelera"></div>
@@ -220,7 +210,6 @@
                 const countdownHtml = (vistaActiva === 'activas' && conf.fecha) 
                     ? `<span class="timer-text countdown-live" data-fecha="${conf.fecha}">Calculando...</span>` : '';
                 const leyCombo = (conf.numPorCombo > 1) ? `<div class="combo-leyenda">Rifa con ${conf.numPorCombo} oportunidades</div>` : '';
-
                 container.innerHTML += `<div class="rifa-card" onclick="abrirRifa('${id}', '${vistaActiva}')">
                     <div class="rifa-badge">$${conf.precio}</div><img src="${conf.foto}"><div class="rifa-info">
                     <h4 style="margin:0; color:var(--gold);">${id}</h4>
@@ -339,7 +328,7 @@
             if(v.pagado) caja += subtotal; else deuda += subtotal;
             container.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
                 <div><strong>${v.nombre}</strong><br><small>#${v.nums.join(',')}</small></div>
-                <div><button onclick="cambiarEstadoPago('${v.ids.join(',')}', ${v.pagado})" style="background:${v.pagado?'#22c55e':'#ff4d4d'}; color:white; border:none; padding:8px; border-radius:5px;">${v.pagado?'PAGADO':'DEBE'}</button>
+                <div><button onclick="cambiarEstadoPago('${v.ids.join(',')}', ${v.pagado}, '${v.nombre}', '${v.tel}', '${v.nums.join(',')}')" style="background:${v.pagado?'#22c55e':'#ff4d4d'}; color:white; border:none; padding:8px; border-radius:5px;">${v.pagado?'PAGADO':'DEBE'}</button>
                 <button onclick="eliminarVenta('${v.ids.join(',')}')" style="background:#eee; border:none; padding:8px; border-radius:5px; margin-left:5px;">🔓</button></div></div>`;
         }
         document.getElementById('fin-caja').innerText = "$" + caja;
@@ -418,7 +407,18 @@
     function enviarAPapelera(id) { if(confirm("¿A papelera?")) db.ref('rifas_activas/'+id).once('value', s => { db.ref('papelera/'+id).set(s.val()).then(() => db.ref('rifas_activas/'+id).remove()); }); }
     function cargarPapelera() { db.ref('papelera').on('value', snap => { const container = document.getElementById('listaPapelera'); container.innerHTML = ''; const data = snap.val(); for(let id in data) container.innerHTML += `<div class="admin-card" style="display:flex; justify-content:space-between;"><strong>${id}</strong><button onclick="recuperarRifa('${id}')">🔄</button></div>`; }); }
     function recuperarRifa(id) { db.ref('papelera/'+id).once('value', s => { db.ref('rifas_activas/'+id).set(s.val()).then(() => db.ref('papelera/'+id).remove()); }); }
-    function cambiarEstadoPago(idsStr, est) { idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).update({pagado:!est})); }
+    
+    function cambiarEstadoPago(idsStr, estActual, nombreCli, telCli, numsCli) {
+        const nuevoEstado = !estActual;
+        idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).update({pagado: nuevoEstado}));
+        
+        if (nuevoEstado === true) {
+            const fechaSorteo = configRifa.fecha ? new Date(configRifa.fecha).toLocaleString() : "Pendiente";
+            const msg = `¡Recibido, *${nombreCli}*! 🍀\n\nTus números para la rifa de *${rifaActualID}* ya quedaron registrados.\n\n🎫 *Tus números:* ${numsCli}\n🏆 *Sorteo:* ${fechaSorteo}\n\nMuchas gracias por participar con *Rifas El Tapatío*. ¡Te deseo la mejor de las suertes, ojalá ese premio se vaya contigo! ✨`;
+            window.open(`https://wa.me/52${telCli}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+    }
+
     function eliminarVenta(idsStr) { if(confirm("¿Liberar?")) idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).remove()); }
     function verSeccionAdmin(id) { document.getElementById('adminMenuPrincipal').style.display='none'; document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id==='sec-proceso') cargarListaGestion(); if(id==='sec-papelera') cargarPapelera(); }
     function regresarMenuAdmin() { modoEdicion = false; document.getElementById('adminMenuPrincipal').style.display='block'; document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); }
