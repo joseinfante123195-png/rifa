@@ -53,14 +53,6 @@
         .btn-gold { background: linear-gradient(45deg, var(--gold), #fbbf24); color: black; font-weight: 900; border: none; padding: 15px; border-radius: 12px; cursor: pointer; width: 100%; }
         .btn-finish { background: #000; color: var(--gold); border: 2px solid var(--gold); padding: 15px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: 900; margin-top: 10px; }
         label { display: block; font-size: 11px; font-weight: bold; color: #64748b; margin-bottom: 4px; }
-        
-        .finanzas-header { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .finanzas-stat { background: #f1f5f9; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0; }
-        .finanzas-stat span { display: block; font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; }
-        .finanzas-stat strong { font-size: 18px; color: #1e293b; }
-        .finanzas-pills { display: flex; gap: 5px; margin-top: 10px; }
-        .pill { flex: 1; padding: 8px; border-radius: 8px; font-size: 10px; font-weight: bold; text-align: center; color: white; }
-        .btn-csv { background: #000; color: white; padding: 10px; border-radius: 10px; border: none; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -282,9 +274,8 @@
         const ocu = compradores.map(c => parseInt(c.numero));
         const disp = [];
         for(let i=0; i < configRifa.total; i++) if(!ocu.includes(i)) disp.push(i);
-        const cantidadAZar = lim; 
         seleccionados = [];
-        while(seleccionados.length < cantidadAZar && disp.length > 0) {
+        while(seleccionados.length < lim && disp.length > 0) {
             const idx = Math.floor(Math.random() * disp.length);
             seleccionados.push(disp.splice(idx, 1)[0]);
         }
@@ -339,6 +330,36 @@
         document.getElementById('pill-libres').innerText = configRifa.total - (pCont + aCont);
     }
 
+    function finalizarRifa() {
+        const wn = document.getElementById('winNombre').value, wnum = document.getElementById('winNumero').value, wFotos = document.getElementById('winFotos').value;
+        if(!wn || !wnum) return alert("Faltan datos");
+
+        db.ref('rifas_activas/' + rifaActualID).once('value', snap => {
+            const data = snap.val();
+            if(!data) return alert("Error al cargar data.");
+            
+            let telGanador = "", nombreGanadorReal = wn;
+            if (data.participantes) {
+                const match = Object.values(data.participantes).find(p => parseInt(p.numero) === parseInt(wnum));
+                if (match) { telGanador = match.tel; nombreGanadorReal = match.nombre; }
+            }
+
+            const msg = `¡TENEMOS GANADOR! 🏆🎉\n\n¡Felicidades, *${nombreGanadorReal}*! El número *${wnum}* resultó premiado en el sorteo de hoy de la Lotería Nacional.\n\n🎁 *Premio:* ${rifaActualID}\n🍀 *Rifa:* Rifas El Tapatío\n\n¡Te acabas de llevar el premio mayor! Por favor, mándame un mensaje para coordinar la entrega. ¡Muchas felicidades! 💎✨`;
+
+            data.config.winNombre = wn; data.config.winNumero = wnum; data.config.winFotos = wFotos;
+            db.ref('historial_rifas/' + rifaActualID).set(data).then(() => {
+                db.ref('rifas_activas/' + rifaActualID).remove().then(() => {
+                    alert("¡Finalizada con éxito!");
+                    if(telGanador) {
+                        const telLimpio = telGanador.replace(/\D/g,'');
+                        window.open(`https://wa.me/52${telLimpio}?text=${encodeURIComponent(msg)}`, '_blank');
+                    } else { alert("No se encontró teléfono para el #" + wnum); }
+                    regresarMenuAdmin();
+                });
+            });
+        });
+    }
+
     function editarRifa(id) {
         modoEdicion = true; rifaActualID = id;
         db.ref('rifas_activas/' + id + '/config').once('value', snap => {
@@ -370,32 +391,6 @@
         db.ref('rifas_activas/' + n + '/config').update(config).then(() => { alert("Guardado"); regresarMenuAdmin(); });
     }
 
-    function finalizarRifa() {
-        const wn = document.getElementById('winNombre').value, wnum = document.getElementById('winNumero').value;
-        if(!wn || !wnum) return alert("Faltan datos");
-        
-        // BUSCAR TELÉFONO DEL GANADOR REGISTRADO
-        const ganadorRegistrado = compradores.find(c => parseInt(c.numero) === parseInt(wnum));
-        const telGanador = ganadorRegistrado ? ganadorRegistrado.tel : null;
-        const nombreGanador = ganadorRegistrado ? ganadorRegistrado.nombre : wn;
-
-        // MENSAJE DE GANADOR (MENSAJE 1)
-        const msg = `¡TENEMOS GANADOR! 🏆🎉\n\n¡Felicidades, *${nombreGanador}*! El número *${wnum}* resultó premiado en el sorteo de hoy de la Lotería Nacional.\n\n🎁 *Premio:* ${rifaActualID}\n🍀 *Rifa:* Rifas El Tapatío\n\n¡Te acabas de llevar el premio mayor! Por favor, mándame un mensaje para coordinar la entrega. ¡Muchas felicidades! 💎✨`;
-
-        db.ref('rifas_activas/' + rifaActualID).once('value', snap => {
-            const data = snap.val(); data.config.winNombre = wn; data.config.winNumero = wnum; data.config.winFotos = document.getElementById('winFotos').value;
-            db.ref('historial_rifas/' + rifaActualID).set(data).then(() => { 
-                db.ref('rifas_activas/' + rifaActualID).remove(); 
-                if(telGanador) {
-                    window.open(`https://wa.me/52${telGanador}?text=${encodeURIComponent(msg)}`, '_blank');
-                } else {
-                    alert("Rifa finalizada, pero no se encontró un teléfono registrado para ese número de boleto.");
-                }
-                regresarMenuAdmin(); 
-            });
-        });
-    }
-
     function cargarListaGestion() {
         db.ref('rifas_activas').on('value', snap => {
             const container = document.getElementById('listaGestionRifas'); container.innerHTML = '';
@@ -416,8 +411,8 @@
     function difundirOferta(id) {
         db.ref('rifas_activas/' + id + '/config').once('value', snap => {
             const conf = snap.val();
-            if(!conf.ofertaTexto) return alert("Esta rifa no tiene una oferta activa configurada.");
-            const msg = `¡AVISO DE SUERTE EN RIFAS EL TAPATÍO! 🍀\n\nActivamos una OFERTA RELÁMPAGO en: *${id}*\n\n💎 PROMO: *${conf.ofertaTexto}*\n\n¡No te quedes fuera, el tablero se está llenando! 🏃💨\n\nAparta aquí: ${window.location.href}`;
+            if(!conf.ofertaTexto) return alert("Sin oferta.");
+            const msg = `¡AVISO DE SUERTE EN RIFAS EL TAPATÍO! 🍀\n\nOferta: *${conf.ofertaTexto}*\n\nLink: ${window.location.href}`;
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         });
     }
@@ -430,9 +425,8 @@
         const nuevoEstado = !estActual;
         idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).update({pagado: nuevoEstado}));
         if (nuevoEstado === true) {
-            const fechaSorteo = configRifa.fecha ? new Date(configRifa.fecha).toLocaleString() : "Pendiente";
-            const msg = `¡Recibido, *${nombreCli}*! 🍀\n\nTus números para la rifa de *${rifaActualID}* ya quedaron registrados.\n\n🎫 *Tus números:* ${numsCli}\n🏆 *Sorteo:* ${fechaSorteo}\n\nMuchas gracias por participar con *Rifas El Tapatío*. ¡Te deseo la mejor de las suertes, ojalá ese premio se vaya contigo! ✨`;
-            window.open(`https://wa.me/52${telCli}?text=${encodeURIComponent(msg)}`, '_blank');
+            const msg = `¡Recibido, *${nombreCli}*! 🍀\n\nBoleto(s): ${numsCli} de *${rifaActualID}* PAGADO ✅. ¡Suerte!`;
+            window.open(`https://wa.me/52${telCli.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
         }
     }
 
