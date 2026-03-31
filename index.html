@@ -13,7 +13,6 @@
         body { background-color: var(--dark-100) !important; color: #f8fafc; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; }
         .container { max-width: 600px; margin: auto; background: var(--dark-200); border-radius: 20px; padding: 15px; border: 1px solid #334155; }
         
-        /* Acceso Admin vía Trébol */
         .trebol-admin { cursor: pointer; display: inline-block; transition: transform 0.3s; }
         .trebol-admin:active { transform: scale(1.2); }
         
@@ -245,12 +244,9 @@
             document.getElementById('tituloRifa').innerText = id;
             document.getElementById('premioImgVer').src = configRifa.foto;
             document.getElementById('leyendaComboRifa').innerText = configRifa.numPorCombo > 1 ? `Rifa con ${configRifa.numPorCombo} oportunidades` : "Rifa de selección libre";
-
             const cdDetalle = document.getElementById('countdownRifaDetalle');
-            if(tipo === 'activas' && configRifa.fecha) {
-                cdDetalle.style.display = 'block'; cdDetalle.className = 'timer-text countdown-live'; cdDetalle.dataset.fecha = configRifa.fecha;
-            } else { cdDetalle.style.display = 'none'; }
-
+            if(tipo === 'activas' && configRifa.fecha) { cdDetalle.style.display = 'block'; cdDetalle.className = 'timer-text countdown-live'; cdDetalle.dataset.fecha = configRifa.fecha; } 
+            else { cdDetalle.style.display = 'none'; }
             if(tipo === 'historial' || configRifa.winNombre) {
                 document.getElementById('seccionCompra').style.display = 'none';
                 document.getElementById('barraProgresoUser').style.display = 'none';
@@ -277,9 +273,8 @@
             div.innerText = i < 10 ? "0" + i : i;
             if(!ocu) div.onclick = () => {
                 const lim = configRifa.numPorCombo || 1;
-                if(seleccionados.includes(i)) {
-                    seleccionados = seleccionados.filter(n => n !== i);
-                } else {
+                if(seleccionados.includes(i)) { seleccionados = seleccionados.filter(n => n !== i); } 
+                else {
                     if(lim === 1) { seleccionados.push(i); } 
                     else if(seleccionados.length < lim) { seleccionados.push(i); }
                 }
@@ -398,10 +393,25 @@
         db.ref('rifas_activas').on('value', snap => {
             const container = document.getElementById('listaGestionRifas'); container.innerHTML = '';
             const data = snap.val(); if(!data) return;
-            for(let id in data) container.innerHTML += `<div class="admin-card" style="display:flex; justify-content:space-between; align-items:center;">
-                <strong>${id}</strong><div><button onclick="abrirFinanzas('${id}')" style="background:var(--success); color:white; border:none; padding:8px; border-radius:5px; margin-right:5px;">💰</button>
-                <button onclick="editarRifa('${id}')" style="background:#eee; border:none; padding:8px; border-radius:5px; margin-right:5px;">✏️</button>
-                <button onclick="enviarAPapelera('${id}')" style="background:none; border:none; font-size:18px;">🗑️</button></div></div>`;
+            for(let id in data) {
+                const conf = data[id].config;
+                const tieneOferta = conf.ofertaTexto && conf.ofertaTexto.length > 0;
+                container.innerHTML += `<div class="admin-card" style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong>${id}</strong><div>
+                    <button onclick="difundirOferta('${id}')" style="background:${tieneOferta?'var(--info)':'#ccc'}; color:white; border:none; padding:8px; border-radius:5px; margin-right:5px;">📢</button>
+                    <button onclick="abrirFinanzas('${id}')" style="background:var(--success); color:white; border:none; padding:8px; border-radius:5px; margin-right:5px;">💰</button>
+                    <button onclick="editarRifa('${id}')" style="background:#eee; border:none; padding:8px; border-radius:5px; margin-right:5px;">✏️</button>
+                    <button onclick="enviarAPapelera('${id}')" style="background:none; border:none; font-size:18px;">🗑️</button></div></div>`;
+            }
+        });
+    }
+
+    function difundirOferta(id) {
+        db.ref('rifas_activas/' + id + '/config').once('value', snap => {
+            const conf = snap.val();
+            if(!conf.ofertaTexto) return alert("Esta rifa no tiene una oferta activa configurada.");
+            const msg = `¡AVISO DE SUERTE EN RIFAS EL TAPATÍO! 🍀\n\nActivamos una OFERTA RELÁMPAGO en: *${id}*\n\n💎 PROMO: *${conf.ofertaTexto}*\n\n¡No te quedes fuera, el tablero se está llenando! 🏃💨\n\nAparta aquí: ${window.location.href}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         });
     }
 
