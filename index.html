@@ -299,8 +299,6 @@
         if(lim > 1 && seleccionados.length !== lim) return alert(`Debes seleccionar exactamente ${lim} números para este combo`);
         const vID = Date.now();
         seleccionados.forEach(num => { db.ref('rifas_activas/'+rifaActualID+'/participantes').push({ nombre:n, tel:t, numero:num, pagado:false, ventaID: vID }); });
-        
-        // MENSAJE DE ENTRADA ESTRUCTURADO (Opción 1)
         const msg = `¡Hola, *Rifas El Tapatío*! 🍀\n\nAcabo de apartar mis números en la página y quiero reportar mi lugar:\n\n🎫 *Rifa:* ${rifaActualID}\n🔢 *Mis Números:* ${seleccionados.join(', ')}\n👤 *Nombre:* ${n}\n\nQuedo atento para mandarte mi comprobante de pago. ¡Suerte para mí! ✨`;
         window.open(`https://wa.me/523310711283?text=${encodeURIComponent(msg)}`, '_blank');
         volverInicio();
@@ -375,9 +373,26 @@
     function finalizarRifa() {
         const wn = document.getElementById('winNombre').value, wnum = document.getElementById('winNumero').value;
         if(!wn || !wnum) return alert("Faltan datos");
+        
+        // BUSCAR TELÉFONO DEL GANADOR REGISTRADO
+        const ganadorRegistrado = compradores.find(c => parseInt(c.numero) === parseInt(wnum));
+        const telGanador = ganadorRegistrado ? ganadorRegistrado.tel : null;
+        const nombreGanador = ganadorRegistrado ? ganadorRegistrado.nombre : wn;
+
+        // MENSAJE DE GANADOR (MENSAJE 1)
+        const msg = `¡TENEMOS GANADOR! 🏆🎉\n\n¡Felicidades, *${nombreGanador}*! El número *${wnum}* resultó premiado en el sorteo de hoy de la Lotería Nacional.\n\n🎁 *Premio:* ${rifaActualID}\n🍀 *Rifa:* Rifas El Tapatío\n\n¡Te acabas de llevar el premio mayor! Por favor, mándame un mensaje para coordinar la entrega. ¡Muchas felicidades! 💎✨`;
+
         db.ref('rifas_activas/' + rifaActualID).once('value', snap => {
             const data = snap.val(); data.config.winNombre = wn; data.config.winNumero = wnum; data.config.winFotos = document.getElementById('winFotos').value;
-            db.ref('historial_rifas/' + rifaActualID).set(data).then(() => { db.ref('rifas_activas/' + rifaActualID).remove(); alert("Finalizada"); regresarMenuAdmin(); });
+            db.ref('historial_rifas/' + rifaActualID).set(data).then(() => { 
+                db.ref('rifas_activas/' + rifaActualID).remove(); 
+                if(telGanador) {
+                    window.open(`https://wa.me/52${telGanador}?text=${encodeURIComponent(msg)}`, '_blank');
+                } else {
+                    alert("Rifa finalizada, pero no se encontró un teléfono registrado para ese número de boleto.");
+                }
+                regresarMenuAdmin(); 
+            });
         });
     }
 
