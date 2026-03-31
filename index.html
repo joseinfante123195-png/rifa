@@ -299,7 +299,10 @@
         if(lim > 1 && seleccionados.length !== lim) return alert(`Debes seleccionar exactamente ${lim} números para este combo`);
         const vID = Date.now();
         seleccionados.forEach(num => { db.ref('rifas_activas/'+rifaActualID+'/participantes').push({ nombre:n, tel:t, numero:num, pagado:false, ventaID: vID }); });
-        window.open(`https://wa.me/523310711283?text=Aparté los números ${seleccionados.join(', ')} para ${rifaActualID}. Soy ${n}.`, '_blank');
+        
+        // MENSAJE DE ENTRADA ESTRUCTURADO (Opción 1)
+        const msg = `¡Hola, *Rifas El Tapatío*! 🍀\n\nAcabo de apartar mis números en la página y quiero reportar mi lugar:\n\n🎫 *Rifa:* ${rifaActualID}\n🔢 *Mis Números:* ${seleccionados.join(', ')}\n👤 *Nombre:* ${n}\n\nQuedo atento para mandarte mi comprobante de pago. ¡Suerte para mí! ✨`;
+        window.open(`https://wa.me/523310711283?text=${encodeURIComponent(msg)}`, '_blank');
         volverInicio();
     }
 
@@ -411,7 +414,6 @@
     function cambiarEstadoPago(idsStr, estActual, nombreCli, telCli, numsCli) {
         const nuevoEstado = !estActual;
         idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).update({pagado: nuevoEstado}));
-        
         if (nuevoEstado === true) {
             const fechaSorteo = configRifa.fecha ? new Date(configRifa.fecha).toLocaleString() : "Pendiente";
             const msg = `¡Recibido, *${nombreCli}*! 🍀\n\nTus números para la rifa de *${rifaActualID}* ya quedaron registrados.\n\n🎫 *Tus números:* ${numsCli}\n🏆 *Sorteo:* ${fechaSorteo}\n\nMuchas gracias por participar con *Rifas El Tapatío*. ¡Te deseo la mejor de las suertes, ojalá ese premio se vaya contigo! ✨`;
