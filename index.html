@@ -218,8 +218,6 @@
                 const winTag = conf.winNombre ? `<div class="winner-tag">🏆 ${conf.winNombre} (#${conf.winNumero})</div>` : '';
                 const countdownHtml = (vistaActiva === 'activas' && conf.fecha) 
                     ? `<span class="timer-text countdown-live" data-fecha="${conf.fecha}">Calculando...</span>` : '';
-                
-                // LEYENDA DINÁMICA EN LISTA
                 const leyCombo = (conf.numPorCombo > 1) ? `<div class="combo-leyenda">Rifa con ${conf.numPorCombo} oportunidades</div>` : '';
 
                 container.innerHTML += `<div class="rifa-card" onclick="abrirRifa('${id}', '${vistaActiva}')">
@@ -244,9 +242,7 @@
             compradores = data.participantes ? Object.entries(data.participantes).map(([k,v]) => ({id:k, ...v})) : [];
             document.getElementById('tituloRifa').innerText = id;
             document.getElementById('premioImgVer').src = configRifa.foto;
-            
-            // LEYENDA DINÁMICA EN DETALLE
-            document.getElementById('leyendaComboRifa').innerText = configRifa.numPorCombo > 1 ? `Rifa con ${configRifa.numPorCombo} oportunidades` : "Rifa de selección individual";
+            document.getElementById('leyendaComboRifa').innerText = configRifa.numPorCombo > 1 ? `Rifa con ${configRifa.numPorCombo} oportunidades` : "Rifa de selección libre";
 
             const cdDetalle = document.getElementById('countdownRifaDetalle');
             if(tipo === 'activas' && configRifa.fecha) {
@@ -279,8 +275,16 @@
             div.innerText = i < 10 ? "0" + i : i;
             if(!ocu) div.onclick = () => {
                 const lim = configRifa.numPorCombo || 1;
-                if(seleccionados.includes(i)) seleccionados = seleccionados.filter(n => n !== i);
-                else if(seleccionados.length < lim) seleccionados.push(i);
+                if(seleccionados.includes(i)) {
+                    seleccionados = seleccionados.filter(n => n !== i);
+                } else {
+                    // CAMBIO AQUÍ: Si es individual (lim == 1), permitir selección ilimitada
+                    if(lim === 1) {
+                        seleccionados.push(i);
+                    } else if(seleccionados.length < lim) {
+                        seleccionados.push(i);
+                    }
+                }
                 dibujarTablero();
             };
             tab.appendChild(div);
@@ -296,8 +300,11 @@
         const ocu = compradores.map(c => parseInt(c.numero));
         const disp = [];
         for(let i=0; i < configRifa.total; i++) if(!ocu.includes(i)) disp.push(i);
+        
+        // Al azar se mantiene en 1 si es individual, o el límite del combo
+        const cantidadAZar = lim; 
         seleccionados = [];
-        while(seleccionados.length < lim && disp.length > 0) {
+        while(seleccionados.length < cantidadAZar && disp.length > 0) {
             const idx = Math.floor(Math.random() * disp.length);
             seleccionados.push(disp.splice(idx, 1)[0]);
         }
@@ -306,7 +313,13 @@
 
     function registrarPro() {
         const n = document.getElementById('nombre').value, t = document.getElementById('telefono').value;
-        if(!n || t.length < 10 || seleccionados.length !== (configRifa.numPorCombo || 1)) return alert("Completa tus datos o selecciona el total de números del combo");
+        const lim = configRifa.numPorCombo || 1;
+        
+        // CAMBIO AQUÍ: Validar que elija al menos 1 si es individual, o el total exacto si es combo
+        if(!n || t.length < 10) return alert("Completa tus datos");
+        if(lim === 1 && seleccionados.length < 1) return alert("Elige al menos un número");
+        if(lim > 1 && seleccionados.length !== lim) return alert(`Debes seleccionar exactamente ${lim} números para este combo`);
+
         const vID = Date.now();
         seleccionados.forEach(num => { db.ref('rifas_activas/'+rifaActualID+'/participantes').push({ nombre:n, tel:t, numero:num, pagado:false, ventaID: vID }); });
         window.open(`https://wa.me/523310711283?text=Aparté los números ${seleccionados.join(', ')} para ${rifaActualID}. Soy ${n}.`, '_blank');
@@ -334,7 +347,9 @@
         });
         for(let vID in agrupadas) {
             const v = agrupadas[vID];
-            if(v.pagado) caja += configRifa.precio; else deuda += configRifa.precio;
+            // Calculo de finanzas basado en precio individual
+            const subtotal = v.nums.length * configRifa.precio;
+            if(v.pagado) caja += subtotal; else deuda += subtotal;
             container.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
                 <div><strong>${v.nombre}</strong><br><small>#${v.nums.join(',')}</small></div>
                 <div><button onclick="cambiarEstadoPago('${v.ids.join(',')}', ${v.pagado})" style="background:${v.pagado?'#22c55e':'#ff4d4d'}; color:white; border:none; padding:8px; border-radius:5px;">${v.pagado?'PAGADO':'DEBE'}</button>
