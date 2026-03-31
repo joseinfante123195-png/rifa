@@ -13,7 +13,9 @@
         body { background-color: var(--dark-100) !important; color: #f8fafc; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; }
         .container { max-width: 600px; margin: auto; background: var(--dark-200); border-radius: 20px; padding: 15px; border: 1px solid #334155; }
         
-        #btnAdminOculto { position: fixed; top: 0; right: 0; width: 60px; height: 60px; background: none; border: none; z-index: 9999; opacity: 0; }
+        /* Acceso Admin vía Trébol */
+        .trebol-admin { cursor: pointer; display: inline-block; transition: transform 0.3s; }
+        .trebol-admin:active { transform: scale(1.2); }
         
         @keyframes blinker { 50% { opacity: 0; } }
         .oferta-tag { background: var(--danger); color: white; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 5px; margin-top: 5px; display: inline-block; animation: blinker 1s linear infinite; text-transform: uppercase; }
@@ -64,11 +66,11 @@
 </head>
 <body>
 
-<button id="btnAdminOculto" onclick="accesoAdmin()"></button>
-
 <div id="pantallaInicio">
     <div style="text-align:center; padding: 25px 15px;">
-        <h1 style="color:var(--gold); margin:0; font-size: 26px; font-weight: 900;">RIFAS EL TAPATÍO 🍀</h1>
+        <h1 style="color:var(--gold); margin:0; font-size: 26px; font-weight: 900;">
+            RIFAS EL TAPATÍO <span class="trebol-admin" onclick="accesoAdmin()">🍀</span>
+        </h1>
     </div>
     <div class="tabs-tapatio">
         <button id="btnTabActivas" class="tab-btn-tapatio active" onclick="cambiarSeccion('activas')">Rifas Activas</button>
@@ -278,12 +280,8 @@
                 if(seleccionados.includes(i)) {
                     seleccionados = seleccionados.filter(n => n !== i);
                 } else {
-                    // CAMBIO AQUÍ: Si es individual (lim == 1), permitir selección ilimitada
-                    if(lim === 1) {
-                        seleccionados.push(i);
-                    } else if(seleccionados.length < lim) {
-                        seleccionados.push(i);
-                    }
+                    if(lim === 1) { seleccionados.push(i); } 
+                    else if(seleccionados.length < lim) { seleccionados.push(i); }
                 }
                 dibujarTablero();
             };
@@ -300,8 +298,6 @@
         const ocu = compradores.map(c => parseInt(c.numero));
         const disp = [];
         for(let i=0; i < configRifa.total; i++) if(!ocu.includes(i)) disp.push(i);
-        
-        // Al azar se mantiene en 1 si es individual, o el límite del combo
         const cantidadAZar = lim; 
         seleccionados = [];
         while(seleccionados.length < cantidadAZar && disp.length > 0) {
@@ -314,12 +310,9 @@
     function registrarPro() {
         const n = document.getElementById('nombre').value, t = document.getElementById('telefono').value;
         const lim = configRifa.numPorCombo || 1;
-        
-        // CAMBIO AQUÍ: Validar que elija al menos 1 si es individual, o el total exacto si es combo
         if(!n || t.length < 10) return alert("Completa tus datos");
         if(lim === 1 && seleccionados.length < 1) return alert("Elige al menos un número");
         if(lim > 1 && seleccionados.length !== lim) return alert(`Debes seleccionar exactamente ${lim} números para este combo`);
-
         const vID = Date.now();
         seleccionados.forEach(num => { db.ref('rifas_activas/'+rifaActualID+'/participantes').push({ nombre:n, tel:t, numero:num, pagado:false, ventaID: vID }); });
         window.open(`https://wa.me/523310711283?text=Aparté los números ${seleccionados.join(', ')} para ${rifaActualID}. Soy ${n}.`, '_blank');
@@ -347,7 +340,6 @@
         });
         for(let vID in agrupadas) {
             const v = agrupadas[vID];
-            // Calculo de finanzas basado en precio individual
             const subtotal = v.nums.length * configRifa.precio;
             if(v.pagado) caja += subtotal; else deuda += subtotal;
             container.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
