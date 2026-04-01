@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RIFAS EL TAPATIO 🍀</title>
+    <title>🍀 RIFAS EL TAPATÍO 🍀</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
@@ -13,47 +13,55 @@
         body { background-color: var(--dark-100) !important; color: #f8fafc; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; }
         .container { max-width: 600px; margin: auto; background: var(--dark-200); border-radius: 20px; padding: 15px; border: 1px solid #334155; }
         
-        .trebol-admin { cursor: pointer; display: inline-block; transition: transform 0.3s; }
+        /* Estilos del nuevo Título Estilo Logo */
+        .logo-header { text-align: center; padding: 30px 15px 20px; }
+        .trebol-logo { font-size: 50px; margin-bottom: 5px; display: block; filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.4)); }
+        .titulo-estilo-logo { 
+            color: var(--gold); 
+            margin: 0; 
+            font-size: 28px; 
+            font-weight: 900; 
+            text-transform: uppercase; 
+            letter-spacing: 2px;
+            background: linear-gradient(to bottom, #f1d592 0%, #d4af37 50%, #b38b1a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+        .subtitulo-logo { color: #f8fafc; display: block; font-size: 22px; margin-top: -5px; font-weight: 700; letter-spacing: 1px; }
+
+        .trebol-admin { cursor: pointer; display: inline-block; transition: transform 0.3s; margin-left: 5px; -webkit-text-fill-color: initial; }
         .trebol-admin:active { transform: scale(1.2); }
         
+        /* Resto de estilos originales */
         @keyframes blinker { 50% { opacity: 0; } }
         .oferta-tag { background: var(--danger); color: white; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 5px; margin-top: 5px; display: inline-block; animation: blinker 1s linear infinite; text-transform: uppercase; }
-
         .rifa-card { background: #1e293b; border-radius: 15px; padding: 12px; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; border: 1px solid #334155; position: relative; overflow: hidden; }
         .rifa-card img { width: 95px; height: 95px; border-radius: 10px; object-fit: cover; border: 1px solid var(--gold); }
         .rifa-info { margin-left: 15px; flex: 1; }
         .rifa-badge { position: absolute; top: 0; right: 0; background: var(--gold); color: black; font-size: 10px; padding: 5px 12px; font-weight: bold; border-bottom-left-radius: 12px; text-transform: uppercase; }
-        
         .timer-text { font-size: 11px; color: var(--gold-light); font-weight: bold; margin-top: 4px; display: block; background: rgba(212, 175, 55, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(212, 175, 55, 0.3); width: fit-content; }
         .winner-tag { color: var(--success); font-weight: bold; font-size: 11px; margin-top: 5px; border: 1px solid var(--success); padding: 2px 6px; border-radius: 4px; display: inline-block; }
-        
         .progress-container { background: #0f172a; border-radius: 10px; height: 8px; margin-top: 8px; border: 1px solid #334155; overflow: hidden; }
         .progress-bar { background: linear-gradient(90deg, var(--gold), #fbbf24); height: 100%; width: 0%; transition: 0.8s; }
-        
         .combo-leyenda { font-size: 11px; color: var(--gold); font-weight: 800; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
-
         .tabs-tapatio { display: flex; gap: 10px; margin-bottom: 20px; padding: 0 5px; }
         .tab-btn-tapatio { flex: 1; background: #1e293b; color: white; border: 1px solid var(--gold); padding: 14px 10px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; text-transform: uppercase; }
         .tab-btn-tapatio.active { background: var(--gold); color: black; }
-
         .grid-numeros { display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 5px; max-height: 280px; overflow-y: auto; padding: 10px; background: #0f172a; border-radius: 12px; }
         .numero { height: 38px; display: flex; align-items: center; justify-content: center; background: #334155; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; border: 1px solid #475569; color: white; }
         .numero.ocupado { opacity: 0.1; background: #000 !important; pointer-events: none; }
         .numero.seleccionado { background: var(--gold) !important; color: black !important; }
-
         .btn-azar { background: #334155; color: var(--gold-light); border: 1px solid var(--gold); padding: 10px; border-radius: 10px; width: 100%; margin-bottom: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; }
-
         #adminPanel { background: #f8fafc; color: #1e293b; border-radius: 20px; padding: 15px; margin-top: 20px; display: none; min-height: 80vh; overflow-y: auto;}
         .admin-nav-btn { width: 100%; padding: 18px; border-radius: 15px; border: 1px solid #ddd; background: white; font-weight: bold; cursor: pointer; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
         .admin-section-content { display: none; }
         .admin-section-content.active { display: block; }
         .admin-card { background: white; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #eee; }
-        
         input, select, textarea { padding: 12px; border-radius: 10px; border: 1px solid #ccc; width: 100%; margin-bottom: 12px; box-sizing: border-box; font-family: inherit; }
         .btn-gold { background: linear-gradient(45deg, var(--gold), #fbbf24); color: black; font-weight: 900; border: none; padding: 15px; border-radius: 12px; cursor: pointer; width: 100%; }
         .btn-finish { background: #000; color: var(--gold); border: 2px solid var(--gold); padding: 15px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: 900; margin-top: 10px; }
         label { display: block; font-size: 11px; font-weight: bold; color: #64748b; margin-bottom: 4px; }
-        
         .finanzas-header { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .finanzas-stat { background: #f1f5f9; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0; }
         .finanzas-stat span { display: block; font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; }
@@ -66,11 +74,14 @@
 <body>
 
 <div id="pantallaInicio">
-    <div style="text-align:center; padding: 25px 15px;">
-        <h1 style="color:var(--gold); margin:0; font-size: 26px; font-weight: 900;">
-            RIFAS EL TAPATÍO <span class="trebol-admin" onclick="accesoAdmin()">🍀</span>
-        </h1>
+    <div class="logo-header">
+        <span class="trebol-logo">☘️</span>
+        <div class="titulo-estilo-logo">RIFAS</div>
+        <div class="subtitulo-logo">
+            EL TAPATÍO <span class="trebol-admin" onclick="accesoAdmin()">🍀</span>
+        </div>
     </div>
+
     <div class="tabs-tapatio">
         <button id="btnTabActivas" class="tab-btn-tapatio active" onclick="cambiarSeccion('activas')">Rifas Activas</button>
         <button id="btnTabHistorial" class="tab-btn-tapatio" onclick="cambiarSeccion('historial')">Historial</button>
@@ -418,16 +429,14 @@
         if(confirm(`¿Deseas reactivar "${id}"? Se mantendrán los participantes pero se borrará el ganador.`)) {
             db.ref('historial_rifas/' + id).once('value', snap => {
                 const data = snap.val();
-                // BLINDAJE: Solo eliminamos datos del ganador, NO los participantes.
                 if(data.config) {
                     delete data.config.winNombre;
                     delete data.config.winNumero;
                     delete data.config.winFotos;
                 }
-                
                 db.ref('rifas_activas/' + id).set(data).then(() => {
                     db.ref('historial_rifas/' + id).remove();
-                    alert("Rifa de nuevo en curso. Ganador eliminado, participantes conservados.");
+                    alert("Rifa de nuevo en curso.");
                 });
             });
         }
@@ -436,8 +445,8 @@
     function difundirOferta(id) {
         db.ref('rifas_activas/' + id + '/config').once('value', snap => {
             const conf = snap.val();
-            if(!conf.ofertaTexto) return alert("Esta rifa no tiene una oferta activa configurada.");
-            const msg = `¡AVISO DE SUERTE EN RIFAS EL TAPATÍO! 🍀\n\nActivamos una OFERTA RELÁMPAGO en: *${id}*\n\n💎 PROMO: *${conf.ofertaTexto}*\n\n¡No te quedes fuera, el tablero se está llenando! 🏃💨\n\nAparta aquí: ${window.location.href}`;
+            if(!conf.ofertaTexto) return alert("Esta rifa no tiene una oferta activa.");
+            const msg = `¡AVISO DE SUERTE EN RIFAS EL TAPATÍO! 🍀\n\nActivamos una OFERTA RELÁMPAGO en: *${id}*\n\n💎 PROMO: *${conf.ofertaTexto}*\n\nAparta aquí: ${window.location.href}`;
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         });
     }
@@ -451,7 +460,7 @@
         idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).update({pagado: nuevoEstado}));
         if (nuevoEstado === true) {
             const fechaSorteo = configRifa.fecha ? new Date(configRifa.fecha).toLocaleString() : "Pendiente";
-            const msg = `¡Recibido, *${nombreCli}*! 🍀\n\nTus números para la rifa de *${rifaActualID}* ya quedaron registrados.\n\n🎫 *Tus números:* ${numsCli}\n🏆 *Sorteo:* ${fechaSorteo}\n\nMuchas gracias por participar con *Rifas El Tapatío*. ¡Te deseo la mejor de las suertes, ojalá ese premio se vaya contigo! ✨`;
+            const msg = `¡Recibido, *${nombreCli}*! 🍀\n\nTus números para la rifa de *${rifaActualID}* ya quedaron registrados.\n\n🎫 *Tus números:* ${numsCli}\n🏆 *Sorteo:* ${fechaSorteo}\n\nMuchas gracias por participar con *Rifas El Tapatío*. ¡Te deseo la mejor de las suertes! ✨`;
             window.open(`https://wa.me/52${telCli}?text=${encodeURIComponent(msg)}`, '_blank');
         }
     }
