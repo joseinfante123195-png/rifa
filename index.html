@@ -115,11 +115,16 @@
     <div id="adminMenuPrincipal">
         <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-proceso')"><span>📊 GESTIÓN</span> ❯</button>
         <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-creador')"><span>🆕 NUEVA RIFA</span> ❯</button>
+        <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-historial-admin')"><span>📜 HISTORIAL DE RIFAS</span> ❯</button>
         <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-papelera')"><span>🗑️ PAPELERA</span> ❯</button>
     </div>
     <div id="sec-proceso" class="admin-section-content">
         <button onclick="regresarMenuAdmin()" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
         <div id="listaGestionRifas"></div>
+    </div>
+    <div id="sec-historial-admin" class="admin-section-content">
+        <button onclick="regresarMenuAdmin()" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
+        <div id="listaHistorialAdmin"></div>
     </div>
     <div id="sec-finanzas" class="admin-section-content">
         <button onclick="verSeccionAdmin('sec-proceso')" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
@@ -299,8 +304,6 @@
         if(lim > 1 && seleccionados.length !== lim) return alert(`Debes seleccionar exactamente ${lim} números para este combo`);
         const vID = Date.now();
         seleccionados.forEach(num => { db.ref('rifas_activas/'+rifaActualID+'/participantes').push({ nombre:n, tel:t, numero:num, pagado:false, ventaID: vID }); });
-        
-        // MENSAJE DE ENTRADA ESTRUCTURADO (Opción 1)
         const msg = `¡Hola, *Rifas El Tapatío*! 🍀\n\nAcabo de apartar mis números en la página y quiero reportar mi lugar:\n\n🎫 *Rifa:* ${rifaActualID}\n🔢 *Mis Números:* ${seleccionados.join(', ')}\n👤 *Nombre:* ${n}\n\nQuedo atento para mandarte mi comprobante de pago. ¡Suerte para mí! ✨`;
         window.open(`https://wa.me/523310711283?text=${encodeURIComponent(msg)}`, '_blank');
         volverInicio();
@@ -398,6 +401,38 @@
         });
     }
 
+    function cargarHistorialAdmin() {
+        db.ref('historial_rifas').on('value', snap => {
+            const container = document.getElementById('listaHistorialAdmin'); container.innerHTML = '';
+            const data = snap.val(); if(!data) return;
+            for(let id in data) {
+                container.innerHTML += `<div class="admin-card" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div><strong>${id}</strong><br><small>Ganador: ${data[id].config.winNombre}</small></div>
+                    <button onclick="reactivarRifa('${id}')" style="background:var(--gold); color:black; border:none; padding:8px 12px; border-radius:8px; font-weight:bold;">🔄 RE-ACTIVAR</button>
+                </div>`;
+            }
+        });
+    }
+
+    function reactivarRifa(id) {
+        if(confirm(`¿Deseas reactivar "${id}"? Se mantendrán los participantes pero se borrará el ganador.`)) {
+            db.ref('historial_rifas/' + id).once('value', snap => {
+                const data = snap.val();
+                // BLINDAJE: Solo eliminamos datos del ganador, NO los participantes.
+                if(data.config) {
+                    delete data.config.winNombre;
+                    delete data.config.winNumero;
+                    delete data.config.winFotos;
+                }
+                
+                db.ref('rifas_activas/' + id).set(data).then(() => {
+                    db.ref('historial_rifas/' + id).remove();
+                    alert("Rifa de nuevo en curso. Ganador eliminado, participantes conservados.");
+                });
+            });
+        }
+    }
+
     function difundirOferta(id) {
         db.ref('rifas_activas/' + id + '/config').once('value', snap => {
             const conf = snap.val();
@@ -422,7 +457,7 @@
     }
 
     function eliminarVenta(idsStr) { if(confirm("¿Liberar?")) idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).remove()); }
-    function verSeccionAdmin(id) { document.getElementById('adminMenuPrincipal').style.display='none'; document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id==='sec-proceso') cargarListaGestion(); if(id==='sec-papelera') cargarPapelera(); }
+    function verSeccionAdmin(id) { document.getElementById('adminMenuPrincipal').style.display='none'; document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id==='sec-proceso') cargarListaGestion(); if(id==='sec-papelera') cargarPapelera(); if(id==='sec-historial-admin') cargarHistorialAdmin(); }
     function regresarMenuAdmin() { modoEdicion = false; document.getElementById('adminMenuPrincipal').style.display='block'; document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); }
     function accesoAdmin() { if(prompt("Clave:")==="rifa2369") { document.getElementById('adminPanel').style.display='block'; document.getElementById('pantallaInicio').style.display='none'; } }
     function volverInicio() { document.getElementById('adminPanel').style.display='none'; document.getElementById('rifaContenedor').style.display='none'; document.getElementById('pantallaInicio').style.display='block'; cargarLista(); }
