@@ -13,27 +13,53 @@
         body { background-color: var(--dark-100) !important; color: #f8fafc; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; }
         .container { max-width: 600px; margin: auto; background: var(--dark-200); border-radius: 20px; padding: 15px; border: 1px solid #334155; }
         
-        /* Estilos del nuevo Título Estilo Logo */
-        .logo-header { text-align: center; padding: 30px 15px 20px; }
-        .trebol-logo { font-size: 50px; margin-bottom: 5px; display: block; filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.4)); }
-        .titulo-estilo-logo { 
+        /* --- BLOQUE DE LOGO ACTUALIZADO --- */
+        .logo-header { text-align: center; padding: 35px 15px 25px; }
+        
+        .trebol-main { 
+            font-size: 65px; 
+            display: inline-block; 
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.5));
+            animation: jump 2s ease-in-out infinite; /* Animación de salto */
+        }
+
+        @keyframes jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .titulo-rifas { 
             color: var(--gold); 
             margin: 0; 
-            font-size: 28px; 
+            font-size: 32px; 
             font-weight: 900; 
             text-transform: uppercase; 
-            letter-spacing: 2px;
-            background: linear-gradient(to bottom, #f1d592 0%, #d4af37 50%, #b38b1a 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: inline-block;
+            letter-spacing: 4px;
+            line-height: 1;
         }
-        .subtitulo-logo { color: #f8fafc; display: block; font-size: 22px; margin-top: -5px; font-weight: 700; letter-spacing: 1px; }
 
-        .trebol-admin { cursor: pointer; display: inline-block; transition: transform 0.3s; margin-left: 5px; -webkit-text-fill-color: initial; }
-        .trebol-admin:active { transform: scale(1.2); }
-        
-        /* Resto de estilos originales */
+        .titulo-tapatio { 
+            color: #ffffff; /* Blanco tal cual la foto */
+            display: block; 
+            font-size: 26px; 
+            margin-top: 5px; 
+            font-weight: 800; 
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .trebol-admin { 
+            cursor: pointer; 
+            display: inline-block; 
+            font-size: 18px;
+            vertical-align: middle;
+            margin-left: 5px;
+            transition: 0.3s;
+        }
+        .trebol-admin:hover { transform: rotate(20deg) scale(1.2); }
+        /* ---------------------------------- */
+
         @keyframes blinker { 50% { opacity: 0; } }
         .oferta-tag { background: var(--danger); color: white; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 5px; margin-top: 5px; display: inline-block; animation: blinker 1s linear infinite; text-transform: uppercase; }
         .rifa-card { background: #1e293b; border-radius: 15px; padding: 12px; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; border: 1px solid #334155; position: relative; overflow: hidden; }
@@ -75,9 +101,9 @@
 
 <div id="pantallaInicio">
     <div class="logo-header">
-        <span class="trebol-logo">☘️</span>
-        <div class="titulo-estilo-logo">RIFAS</div>
-        <div class="subtitulo-logo">
+        <div class="trebol-main">☘️</div>
+        <div class="titulo-rifas">RIFAS</div>
+        <div class="titulo-tapatio">
             EL TAPATÍO <span class="trebol-admin" onclick="accesoAdmin()">🍀</span>
         </div>
     </div>
