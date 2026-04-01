@@ -13,15 +13,14 @@
         body { background-color: var(--dark-100) !important; color: #f8fafc; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; }
         .container { max-width: 600px; margin: auto; background: var(--dark-200); border-radius: 20px; padding: 15px; border: 1px solid #334155; }
         
-        /* --- DISEÑO DE LOGO CON IMAGEN --- */
+        /* --- DISEÑO DE LOGO FIEL A LA FOTO --- */
         .logo-header { text-align: center; padding: 35px 15px 25px; }
         
-        .logo-img-main { 
-            width: 80px; 
-            height: auto;
+        .trebol-main { 
+            font-size: 65px; 
             display: inline-block; 
             margin-bottom: 10px;
-            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.6));
+            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.5));
             animation: jump 2s ease-in-out infinite;
         }
 
@@ -41,7 +40,7 @@
         }
 
         .titulo-tapatio { 
-            color: #ffffff; 
+            color: #ffffff; /* Blanco como pediste */
             display: block; 
             font-size: 26px; 
             margin-top: 5px; 
@@ -100,13 +99,14 @@
 
 <div id="pantallaInicio">
     <div class="logo-header">
-        <img src="https://i.postimg.cc/0jWJ9kY7/636791.png" class="logo-img-main" alt="Logo Trébol">
+        <div class="trebol-main">☘️</div>
         <div class="titulo-rifas">RIFAS</div>
         <div class="titulo-tapatio">
             EL TAPATÍO <span class="trebol-admin" onclick="accesoAdmin()">🍀</span>
         </div>
     </div>
-<div class="tabs-tapatio">
+
+    <div class="tabs-tapatio">
         <button id="btnTabActivas" class="tab-btn-tapatio active" onclick="cambiarSeccion('activas')">Rifas Activas</button>
         <button id="btnTabHistorial" class="tab-btn-tapatio" onclick="cambiarSeccion('historial')">Historial</button>
     </div>
