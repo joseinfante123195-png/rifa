@@ -9,93 +9,104 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 
     <style>
-        :root { --gold: #d4af37; --dark: #0f172a; --card: #1e293b; --success: #22c55e; --danger: #ef4444; }
-        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; }
-        .container { max-width: 500px; margin: auto; }
+        :root { --gold: #d4af37; --gold-light: #f1d592; --dark-bg: #0f172a; --card-bg: #1e293b; --success: #22c55e; --danger: #ef4444; }
+        body { background: var(--dark-bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 10px; line-height: 1.6; }
+        .container { max-width: 550px; margin: auto; }
         
-        /* Pestañas (Tabs) */
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--gold); background: none; color: white; cursor: pointer; font-weight: bold; }
-        .tab-btn.active { background: var(--gold); color: black; }
+        /* Encabezado y Pestañas */
+        .header { text-align: center; padding: 20px 0; }
+        .header h1 { color: var(--gold); margin: 0; font-size: 28px; text-transform: uppercase; letter-spacing: 2px; }
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { flex: 1; padding: 15px; border: 1px solid var(--gold); border-radius: 12px; background: transparent; color: white; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .tab.active { background: var(--gold); color: black; }
 
         /* Tarjetas de Rifa */
-        .rifa-card { background: var(--card); border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #334155; position: relative; cursor: pointer; display: flex; align-items: center; }
-        .rifa-card img { width: 70px; height: 70px; border-radius: 10px; object-fit: cover; margin-right: 15px; border: 1px solid var(--gold); }
-        .badge { position: absolute; top: 0; right: 0; background: var(--gold); color: black; padding: 4px 10px; font-size: 11px; font-weight: bold; border-bottom-left-radius: 10px; }
+        .rifa-card { background: var(--card-bg); border-radius: 20px; padding: 15px; margin-bottom: 20px; border: 1px solid #334155; position: relative; cursor: pointer; display: flex; align-items: center; transition: transform 0.2s; }
+        .rifa-card:active { transform: scale(0.98); }
+        .rifa-card img { width: 90px; height: 90px; border-radius: 12px; object-fit: cover; border: 2px solid var(--gold); }
+        .rifa-details { margin-left: 15px; flex: 1; }
+        .rifa-details h3 { margin: 0; color: var(--gold-light); }
+        .price-tag { position: absolute; top: 0; right: 0; background: var(--gold); color: black; padding: 5px 15px; font-weight: 900; border-bottom-left-radius: 15px; font-size: 14px; }
 
-        /* Tablero */
-        .grid-nums { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 5px; background: #000; padding: 10px; border-radius: 10px; max-height: 250px; overflow-y: auto; }
-        .num { height: 35px; display: flex; align-items: center; justify-content: center; background: #334155; border-radius: 5px; cursor: pointer; font-size: 12px; }
-        .num.ocupado { opacity: 0.2; pointer-events: none; }
-        .num.selected { background: var(--gold); color: black; }
+        /* Pantalla de Selección (Tablero) */
+        .grid-numbers { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 8px; background: #000; padding: 15px; border-radius: 15px; max-height: 350px; overflow-y: auto; margin: 15px 0; border: 1px solid #334155; }
+        .n-box { height: 45px; display: flex; align-items: center; justify-content: center; background: #334155; border-radius: 8px; font-weight: bold; cursor: pointer; border: 1px solid #475569; }
+        .n-box.taken { opacity: 0.15; pointer-events: none; background: #000; }
+        .n-box.selected { background: var(--gold) !important; color: black !important; box-shadow: 0 0 15px var(--gold); }
 
-        /* Formularios */
-        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: none; box-sizing: border-box; background: #f8fafc; color: #1e293b; }
-        .btn-gold { background: var(--gold); color: black; font-weight: bold; padding: 15px; border: none; border-radius: 10px; width: 100%; cursor: pointer; margin-top: 10px; }
-        #adminPanel, #loginPanel { display: none; background: #f8fafc; color: #1e293b; padding: 20px; border-radius: 15px; margin-top: 20px; }
-        .admin-item { border-bottom: 1px solid #ddd; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+        /* Formularios y Botones */
+        input { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 10px; border: none; box-sizing: border-box; font-size: 16px; }
+        .btn-main { background: linear-gradient(45deg, var(--gold), #fbbf24); color: black; font-weight: 900; padding: 18px; border: none; border-radius: 12px; width: 100%; cursor: pointer; text-transform: uppercase; font-size: 16px; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3); }
+        
+        /* Panel Admin Oculto */
+        #adminArea, #loginArea { display: none; background: #f1f5f9; color: #0f172a; padding: 25px; border-radius: 25px; margin-top: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .admin-row { background: white; padding: 12px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1 style="text-align:center; color:var(--gold)">RIFAS EL TAPATÍO <span onclick="mostrarLogin()" style="cursor:pointer">🍀</span></h1>
-    
-    <div id="vistaPrincipal">
-        <div class="tabs">
-            <button id="btnActivas" class="tab-btn active" onclick="cambiarVista('rifas')">EN PROCESO</button>
-            <button id="btnHistorial" class="tab-btn" onclick="cambiarVista('historial')">HISTORIAL</button>
-        </div>
-        <div id="listaRifas"></div>
+    <div class="header">
+        <h1>Rifas El Tapatío <span onclick="abrirLogin()" style="cursor:pointer; font-size: 20px;">🍀</span></h1>
     </div>
 
-    <div id="detalleRifa" style="display:none;">
-        <button onclick="volver()" style="color:white; background:none; border:none; margin-bottom:10px; cursor:pointer;">❮ Volver</button>
-        <h2 id="t-nombre" style="color:var(--gold); margin: 5px 0;"></h2>
-        <img id="t-img" style="width:100%; border-radius:15px; margin-bottom:15px;">
+    <div id="vistaCliente">
+        <div class="nav-tabs">
+            <button id="tabActivas" class="tab active" onclick="switchView('rifas')">EN PROCESO</button>
+            <button id="tabHistorial" class="tab" onclick="switchView('historial')">FINALIZADAS</button>
+        </div>
+        <div id="contenedorRifas"></div>
+    </div>
+
+    <div id="vistaDetalle" style="display:none;">
+        <button onclick="regresar()" style="background:none; color:white; border:none; margin-bottom:15px; cursor:pointer;">❮ VOLVER AL LISTADO</button>
+        <h2 id="detNombre" style="color:var(--gold); margin:0;"></h2>
+        <img id="detImg" src="" style="width:100%; border-radius:20px; margin:15px 0; border:1px solid var(--gold);">
         
-        <div id="seccionCompra">
-            <div id="tablero" class="grid-nums"></div>
-            <div style="margin-top:20px;">
-                <input type="text" id="u-nom" placeholder="Tu nombre">
-                <input type="tel" id="u-tel" placeholder="Tu WhatsApp">
-                <button onclick="apartar()" class="btn-gold">APARTAR NÚMEROS 🚀</button>
-            </div>
+        <div id="zonaInteraccion">
+            <p style="text-align:center; font-weight:bold; color:var(--gold-light);">Selecciona tus números:</p>
+            <div id="tableroNumeros" class="grid-numbers"></div>
+            <input type="text" id="clienteNombre" placeholder="Nombre Completo">
+            <input type="tel" id="clienteTel" placeholder="WhatsApp (10 dígitos)">
+            <button onclick="procesarApartado()" class="btn-main">APARTAR BOLETOS 🚀</button>
         </div>
 
-        <div id="seccionGanador" style="display:none; background:rgba(34, 197, 94, 0.2); padding:15px; border-radius:15px; border:1px solid var(--success); text-align:center;">
-            <h3 style="color:var(--success); margin:0;">🏆 GANADOR 🏆</h3>
-            <p id="txtGanador" style="font-size:20px; font-weight:bold; margin:10px 0;"></p>
+        <div id="zonaGanador" style="display:none; background:rgba(34,197,94,0.1); border:2px solid var(--success); padding:20px; border-radius:20px; text-align:center;">
+            <h2 style="color:var(--success); margin:0;">🏆 ¡TENEMOS GANADOR! 🏆</h2>
+            <p id="nombreGanador" style="font-size:24px; font-weight:900; margin:15px 0;"></p>
         </div>
     </div>
 
-    <div id="loginPanel">
-        <h3 style="margin-top:0">Acceso Dueño</h3>
-        <input type="email" id="email" placeholder="Correo">
-        <input type="password" id="pass" placeholder="Contraseña">
-        <button onclick="login()" class="btn-gold">Entrar</button>
-        <button onclick="cerrarPaneles()" style="width:100%; border:none; background:none; margin-top:10px; cursor:pointer;">Cancelar</button>
+    <div id="loginArea">
+        <h2 style="margin-top:0">Acceso Privado</h2>
+        <input type="email" id="logEmail" placeholder="Correo Electrónico">
+        <input type="password" id="logPass" placeholder="Contraseña">
+        <button onclick="intentarLogin()" class="btn-main">ENTRAR AL SISTEMA</button>
+        <button onclick="cerrarAdmin()" style="width:100%; background:none; border:none; margin-top:10px; color:#64748b;">Cancelar</button>
     </div>
 
-    <div id="adminPanel">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0">Panel Admin ✅</h3>
-            <button onclick="logout()" style="font-size:10px;">Salir</button>
+    <div id="adminArea">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2 style="margin:0">Panel Maestro</h2>
+            <button onclick="salirAdmin()" style="padding:5px 15px; border-radius:8px;">Cerrar Sesión</button>
         </div>
-        <hr>
-        <h4>Crear / Editar</h4>
-        <input type="text" id="a-nom" placeholder="Nombre (ej: Camioneta)">
-        <input type="number" id="a-tot" placeholder="Total números">
-        <input type="number" id="a-pre" placeholder="Precio ($)">
-        <input type="text" id="a-fot" placeholder="URL Imagen">
-        <button onclick="guardarRifa()" class="btn-gold">GUARDAR RIFA</button>
         
-        <h4 style="margin-top:20px;">Gestión de Pagos</h4>
-        <div id="adminVentas"></div>
+        <div style="background:#e2e8f0; padding:15px; border-radius:15px; margin-bottom:25px;">
+            <h4 style="margin-top:0">Nueva Rifa / Editar</h4>
+            <input type="text" id="admNom" placeholder="Nombre del Premio">
+            <input type="number" id="admTot" placeholder="Cant. Números (ej. 100)">
+            <input type="number" id="admPre" placeholder="Precio $">
+            <input type="text" id="admFot" placeholder="URL de la Foto">
+            <button onclick="guardarCambios()" class="btn-gold" style="width:100%; padding:12px; background:black; color:white; border-radius:10px; cursor:pointer;">PUBLICAR EN APP</button>
+        </div>
+
+        <h4>Ventas y Pagos Actuales</h4>
+        <div id="adminVentasList"></div>
     </div>
 </div>
 
 <script>
+    // 1. CONFIGURACIÓN ÚNICA
     const firebaseConfig = { 
         apiKey: "AIzaSyAchA8tvM4Hum-anybTex8nzLNxKa8yz_M", 
         authDomain: "rifa01-6ff39.firebaseapp.com", 
@@ -106,149 +117,159 @@
     const db = firebase.database();
     const auth = firebase.auth();
 
-    let vistaActual = "rifas"; 
-    let rifaActiva = "";
-    let seleccionados = [];
+    let modoActual = "rifas"; 
+    let rifaID = "";
+    let misSeleccionados = [];
 
-    // --- CARGAR LISTAS ---
-    function cambiarVista(v) {
-        vistaActual = v;
-        document.getElementById('btnActivas').classList.toggle('active', v === 'rifas');
-        document.getElementById('btnHistorial').classList.toggle('active', v === 'historial');
-        cargarDatos();
+    // 2. LÓGICA DE NAVEGACIÓN
+    function switchView(v) {
+        modoActual = v;
+        document.getElementById('tabActivas').classList.toggle('active', v === 'rifas');
+        document.getElementById('tabHistorial').classList.toggle('active', v === 'historial');
+        renderizarLista();
     }
 
-    function cargarDatos() {
-        db.ref(vistaActual).on('value', s => {
-            const list = document.getElementById('listaRifas');
+    function renderizarLista() {
+        db.ref(modoActual).on('value', snap => {
+            const list = document.getElementById('contenedorRifas');
             list.innerHTML = '';
-            s.forEach(h => {
-                const c = h.val().config;
+            if(!snap.exists()) { list.innerHTML = '<p style="text-align:center; color:#64748b;">No hay rifas aquí.</p>'; return; }
+            snap.forEach(item => {
+                const c = item.val().config;
                 list.innerHTML += `
-                    <div class="rifa-card" onclick="verRifa('${h.key}')">
-                        <div class="badge">$${c.precio}</div>
+                    <div class="rifa-card" onclick="abrirRifa('${item.key}')">
+                        <div class="price-tag">$${c.precio}</div>
                         <img src="${c.foto}">
-                        <div class="info"><strong>${h.key}</strong><br><small>${vistaActual === 'rifas' ? 'En proceso' : 'Finalizada'}</small></div>
+                        <div class="rifa-details">
+                            <h3>${item.key}</h3>
+                            <small>${modoActual === 'rifas' ? '🟢 Disponible' : '🔴 Finalizada'}</small>
+                        </div>
                     </div>`;
             });
         });
     }
 
-    function verRifa(id) {
-        rifaActiva = id;
-        document.getElementById('vistaPrincipal').style.display = 'none';
-        document.getElementById('detalleRifa').style.display = 'block';
-        db.ref(vistaActual + '/' + id).on('value', s => {
-            const d = s.val();
-            document.getElementById('t-nombre').innerText = id;
-            document.getElementById('t-img').src = d.config.foto;
+    function abrirRifa(id) {
+        rifaID = id;
+        document.getElementById('vistaCliente').style.display = 'none';
+        document.getElementById('vistaDetalle').style.display = 'block';
+        db.ref(modoActual + '/' + id).on('value', snap => {
+            const data = snap.val();
+            document.getElementById('detNombre').innerText = id;
+            document.getElementById('detImg').src = data.config.foto;
             
-            if(vistaActual === 'rifas') {
-                document.getElementById('seccionCompra').style.display = 'block';
-                document.getElementById('seccionGanador').style.display = 'none';
-                dibujarTablero(d.config.total, d.participantes || {});
+            if(modoActual === 'rifas') {
+                document.getElementById('zonaInteraccion').style.display = 'block';
+                document.getElementById('zonaGanador').style.display = 'none';
+                construirTablero(data.config.total, data.participantes || {});
             } else {
-                document.getElementById('seccionCompra').style.display = 'none';
-                document.getElementById('seccionGanador').style.display = 'block';
-                document.getElementById('txtGanador').innerText = "Ganador: " + (d.config.ganador || "Pendiente");
+                document.getElementById('zonaInteraccion').style.display = 'none';
+                document.getElementById('zonaGanador').style.display = 'block';
+                document.getElementById('nombreGanador').innerText = data.config.ganador || "Ganador no registrado";
             }
         });
     }
 
-    function dibujarTablero(total, parts) {
-        const tab = document.getElementById('tablero'); tab.innerHTML = '';
-        const ocupados = Object.keys(parts);
+    function construirTablero(total, parts) {
+        const grid = document.getElementById('tableroNumeros'); grid.innerHTML = '';
+        const tks = Object.keys(parts);
         for(let i=0; i<total; i++) {
             const n = i.toString().padStart(2, '0');
-            const d = document.createElement('div');
-            d.className = 'num' + (ocupados.includes(n) ? ' ocupado' : '');
-            d.innerText = n;
-            if(!ocupados.includes(n)) d.onclick = () => {
-                d.classList.toggle('selected');
-                const idx = seleccionados.indexOf(n);
-                if(idx > -1) seleccionados.splice(idx, 1); else seleccionados.push(n);
-            };
-            tab.appendChild(d);
+            const box = document.createElement('div');
+            box.className = 'n-box' + (tks.includes(n) ? ' taken' : '');
+            box.innerText = n;
+            if(!tks.includes(n)) {
+                box.onclick = () => {
+                    box.classList.toggle('selected');
+                    const idx = misSeleccionados.indexOf(n);
+                    if(idx > -1) misSeleccionados.splice(idx, 1); else misSeleccionados.push(n);
+                };
+            }
+            grid.appendChild(box);
         }
     }
 
-    function apartar() {
-        const nom = document.getElementById('u-nom').value;
-        const tel = document.getElementById('u-tel').value;
-        if(!nom || !tel || seleccionados.length === 0) return alert("Faltan datos");
-        seleccionados.forEach(n => {
-            db.ref('rifas/'+rifaActiva+'/participantes/'+n).set({ nombre: nom, tel: tel, pagado: false });
+    function procesarApartado() {
+        const n = document.getElementById('clienteNombre').value;
+        const t = document.getElementById('clienteTel').value;
+        if(!n || !t || misSeleccionados.length === 0) return alert("Por favor completa tus datos y elige números.");
+        
+        misSeleccionados.forEach(num => {
+            db.ref('rifas/'+rifaID+'/participantes/'+num).set({ nombre: n, tel: t, pagado: false });
         });
-        alert("¡Números apartados!"); seleccionados = []; volver();
+        alert("¡Éxito! Tus números han sido apartados.");
+        misSeleccionados = []; regresar();
     }
 
-    function volver() { document.getElementById('vistaPrincipal').style.display = 'block'; document.getElementById('detalleRifa').style.display = 'none'; }
+    function regresar() { document.getElementById('vistaCliente').style.display = 'block'; document.getElementById('vistaDetalle').style.display = 'none'; }
 
-    // --- ADMIN ---
-    function mostrarLogin() { document.getElementById('loginPanel').style.display = 'block'; }
-    function cerrarPaneles() { document.getElementById('loginPanel').style.display = 'none'; }
+    // 3. SECCIÓN ADMINISTRATIVA (BLINDADA)
+    function abrirLogin() { document.getElementById('loginArea').style.display = 'block'; }
+    function cerrarAdmin() { document.getElementById('loginArea').style.display = 'none'; }
 
-    function login() {
-        auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('pass').value)
-            .then(() => {
-                document.getElementById('loginPanel').style.display = 'none';
-                document.getElementById('adminPanel').style.display = 'block';
-                cargarAdminVentas();
-            }).catch(() => alert("Error de acceso"));
+    function intentarLogin() {
+        const e = document.getElementById('logEmail').value;
+        const p = document.getElementById('logPass').value;
+        auth.signInWithEmailAndPassword(e, p).then(() => {
+            document.getElementById('loginArea').style.display = 'none';
+            document.getElementById('adminArea').style.display = 'block';
+            gestionarVentas();
+        }).catch(() => alert("Acceso denegado. Solo el dueño puede entrar."));
     }
 
-    function guardarRifa() {
-        const n = document.getElementById('a-nom').value;
-        const conf = {
-            total: parseInt(document.getElementById('a-tot').value),
-            precio: parseInt(document.getElementById('a-pre').value),
-            foto: document.getElementById('a-fot').value
+    function guardarCambios() {
+        const n = document.getElementById('admNom').value;
+        const c = {
+            total: parseInt(document.getElementById('admTot').value),
+            precio: parseInt(document.getElementById('admPre').value),
+            foto: document.getElementById('admFot').value
         };
-        db.ref('rifas/'+n+'/config').set(conf).then(() => alert("Guardado")).catch(() => alert("Sin permiso"));
+        db.ref('rifas/'+n+'/config').set(c).then(() => alert("Rifa publicada correctamente")).catch(() => alert("Error: No tienes permisos."));
     }
 
-    function cargarAdminVentas() {
-        db.ref('rifas').on('value', s => {
-            const cont = document.getElementById('adminVentas'); cont.innerHTML = '';
-            s.forEach(rifa => {
-                const p = rifa.val().participantes;
-                if(p) {
-                    cont.innerHTML += `<p><strong>${rifa.key}</strong></p>`;
-                    Object.entries(p).forEach(([num, info]) => {
-                        cont.innerHTML += `
-                            <div class="admin-item">
-                                <span>#${num} ${info.nombre}</span>
+    function gestionarVentas() {
+        db.ref('rifas').on('value', snap => {
+            const list = document.getElementById('adminVentasList'); list.innerHTML = '';
+            snap.forEach(rifa => {
+                const ps = rifa.val().participantes;
+                if(ps) {
+                    list.innerHTML += `<div style="margin-top:15px; border-bottom:2px solid #cbd5e1"><strong>RIFA: ${rifa.key}</strong></div>`;
+                    Object.entries(ps).forEach(([num, info]) => {
+                        list.innerHTML += `
+                            <div class="admin-row">
+                                <span>#${num} - ${info.nombre}</span>
                                 <div>
-                                    <button onclick="pago('${rifa.key}','${num}',${info.pagado})" style="background:${info.pagado? 'green':'red'}; color:white; border:none; padding:5px; border-radius:5px;">${info.pagado?'SI':'NO'}</button>
-                                    <button onclick="liberar('${rifa.key}','${num}')">🔓</button>
+                                    <button onclick="togglePago('${rifa.key}','${num}',${info.pagado})" style="background:${info.pagado?'#22c55e':'#ef4444'}; color:white; border:none; padding:5px 10px; border-radius:5px;">${info.pagado?'PAGADO':'DEBE'}</button>
+                                    <button onclick="quitar('${rifa.key}','${num}')" style="margin-left:5px;">🔓</button>
                                 </div>
                             </div>`;
                     });
-                    cont.innerHTML += `<button onclick="finalizar('${rifa.key}')" style="font-size:10px; color:blue;">Mover a Historial</button>`;
+                    list.innerHTML += `<button onclick="moverAHistorial('${rifa.key}')" style="background:#0f172a; color:white; width:100%; padding:10px; border-radius:8px; margin-top:5px;">FINALIZAR Y PONER GANADOR</button>`;
                 }
             });
         });
     }
 
-    function pago(rid, n, est) { db.ref('rifas/'+rid+'/participantes/'+n).update({ pagado: !est }); }
-    function liberar(rid, n) { if(confirm("¿Liberar?")) db.ref('rifas/'+rid+'/participantes/'+n).remove(); }
-    
-    function finalizar(id) {
-        const win = prompt("Nombre del Ganador:");
-        if(!win) return;
-        db.ref('rifas/'+id).once('value', s => {
-            const data = s.val();
-            data.config.ganador = win;
+    function togglePago(r, n, s) { db.ref('rifas/'+r+'/participantes/'+n).update({ pagado: !s }); }
+    function quitar(r, n) { if(confirm("¿Liberar número?")) db.ref('rifas/'+r+'/participantes/'+n).remove(); }
+
+    function moverAHistorial(id) {
+        const g = prompt("Escribe el nombre del ganador de la rifa " + id + ":");
+        if(!g) return;
+        db.ref('rifas/'+id).once('value', snap => {
+            const data = snap.val();
+            data.config.ganador = g;
             db.ref('historial/'+id).set(data).then(() => {
                 db.ref('rifas/'+id).remove();
-                alert("Rifa movida al historial");
+                alert("Rifa enviada al historial.");
             });
         });
     }
 
-    function logout() { auth.signOut().then(() => location.reload()); }
+    function salirAdmin() { auth.signOut().then(() => location.reload()); }
 
-    cargarDatos();
+    // INICIAR APP
+    renderizarLista();
 </script>
 </body>
 </html>
