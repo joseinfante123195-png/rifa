@@ -113,13 +113,18 @@
         <button onclick="volverInicio()" style="background:none; border:none; font-size: 20px;">✕</button>
     </div>
     <div id="adminMenuPrincipal">
-        <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-proceso')"><span>📊 GESTIÓN</span> ❯</button>
+        <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-proceso')"><span>📊 GESTIÓN ACTIVAS</span> ❯</button>
+        <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-gestion-historial')"><span>📜 GESTIÓN HISTORIAL</span> ❯</button>
         <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-creador')"><span>🆕 NUEVA RIFA</span> ❯</button>
         <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-papelera')"><span>🗑️ PAPELERA</span> ❯</button>
     </div>
     <div id="sec-proceso" class="admin-section-content">
         <button onclick="regresarMenuAdmin()" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
         <div id="listaGestionRifas"></div>
+    </div>
+    <div id="sec-gestion-historial" class="admin-section-content">
+        <button onclick="regresarMenuAdmin()" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
+        <div id="listaGestionHistorial"></div>
     </div>
     <div id="sec-finanzas" class="admin-section-content">
         <button onclick="verSeccionAdmin('sec-proceso')" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
@@ -397,6 +402,35 @@
         });
     } 
 
+    function cargarListaHistorialAdmin() {
+        db.ref('historial_rifas').on('value', snap => {
+            const container = document.getElementById('listaGestionHistorial'); container.innerHTML = '';
+            const data = snap.val(); if(!data) return;
+            for(let id in data) {
+                container.innerHTML += `<div class="admin-card" style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong>📜 ${id}</strong><div>
+                    <button onclick="regresarAActivas('${id}')" style="background:var(--gold); color:black; border:none; padding:8px 12px; border-radius:8px; font-weight:bold; cursor:pointer;">RE-ACTIVAR 🔄</button>
+                    <button onclick="enviarAPapeleraHistorial('${id}')" style="background:none; border:none; font-size:18px; margin-left:10px;">🗑️</button></div></div>`;
+            }
+        });
+    }
+
+    function regresarAActivas(id) {
+        if(confirm(`¿Deseas mover "${id}" de regreso a Rifas en Proceso? (Se quitará la marca de finalizada)`)) {
+            db.ref('historial_rifas/' + id).once('value', snap => {
+                const data = snap.val();
+                // Limpiamos los datos de ganador si vuelve a estar activa
+                delete data.config.winNombre;
+                delete data.config.winNumero;
+                delete data.config.winFotos;
+                db.ref('rifas_activas/' + id).set(data).then(() => {
+                    db.ref('historial_rifas/' + id).remove();
+                    alert("Rifa re-activada correctamente.");
+                });
+            });
+        }
+    }
+
     function difundirOferta(id) {
         db.ref('rifas_activas/' + id + '/config').once('value', snap => {
             const conf = snap.val();
@@ -407,6 +441,7 @@
     } 
 
     function enviarAPapelera(id) { if(confirm("¿A papelera?")) db.ref('rifas_activas/'+id).once('value', s => { db.ref('papelera/'+id).set(s.val()).then(() => db.ref('rifas_activas/'+id).remove()); }); }
+    function enviarAPapeleraHistorial(id) { if(confirm("¿Enviar historial a papelera?")) db.ref('historial_rifas/'+id).once('value', s => { db.ref('papelera/'+id).set(s.val()).then(() => db.ref('historial_rifas/'+id).remove()); }); }
     function cargarPapelera() { db.ref('papelera').on('value', snap => { const container = document.getElementById('listaPapelera'); container.innerHTML = ''; const data = snap.val(); for(let id in data) container.innerHTML += `<div class="admin-card" style="display:flex; justify-content:space-between;"><strong>${id}</strong><button onclick="recuperarRifa('${id}')">🔄</button></div>`; }); }
     function recuperarRifa(id) { db.ref('papelera/'+id).once('value', s => { db.ref('rifas_activas/'+id).set(s.val()).then(() => db.ref('papelera/'+id).remove()); }); }
     
@@ -421,7 +456,16 @@
     } 
 
     function eliminarVenta(idsStr) { if(confirm("¿Liberar?")) idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).remove()); }
-    function verSeccionAdmin(id) { document.getElementById('adminMenuPrincipal').style.display='none'; document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id==='sec-proceso') cargarListaGestion(); if(id==='sec-papelera') cargarPapelera(); }
+    
+    function verSeccionAdmin(id) { 
+        document.getElementById('adminMenuPrincipal').style.display='none'; 
+        document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); 
+        document.getElementById(id).classList.add('active'); 
+        if(id==='sec-proceso') cargarListaGestion(); 
+        if(id==='sec-gestion-historial') cargarListaHistorialAdmin();
+        if(id==='sec-papelera') cargarPapelera(); 
+    }
+
     function regresarMenuAdmin() { modoEdicion = false; document.getElementById('adminMenuPrincipal').style.display='block'; document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); }
     
     function accesoAdmin() { 
