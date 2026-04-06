@@ -152,7 +152,7 @@
             <label>Precio ($)</label><input type="number" id="newRifaPrecio">
             <label>URL Foto</label><input type="text" id="newRifaFoto">
             <label>Fecha Sorteo</label><input type="datetime-local" id="newRifaFecha">
-            <label>Combo de Selección</label><select id="newRifaModo"><option value="1">Individual</option><option value="2">Combo 2</option><option value="4">Combo 4</option><option value="5">Combo 5</option></select>
+            <label>Combo de Selección</label><select id="newRifaModo"><option value="1">Individual (Costo x número)</option><option value="2">Combo 2 (Costo total combo)</option><option value="4">Combo 4 (Costo total combo)</option><option value="5">Combo 5 (Costo total combo)</option></select>
             <div style="background:#fff5f5; padding:12px; border-radius:12px; border:1px solid #feb2b2; margin-top:10px;">
                 <label style="color:#c53030">Oferta</label><input type="text" id="ofertaTexto">
                 <label style="color:#c53030">Expira</label><input type="datetime-local" id="ofertaExpira">
@@ -178,6 +178,10 @@
     const firebaseConfig = { apiKey: "AIzaSyAchA8tvM4Hum-anybTex8nzLNxKa8yz_M", authDomain: "rifa01-6ff39.firebaseapp.com", databaseURL: "https://rifa01-6ff39-default-rtdb.firebaseio.com", projectId: "rifa01-6ff39" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database(); 
+
+    // OFUSCACIÓN DE CREDENCIALES (Base64)
+    const _u = "am9zZS5pbmZhbnRlMTIzMTk1QGdtYWlsLmNvbQ=="; 
+    const _p = "cmlmYTIzNjk=";
 
     let rifaActualID = "", seleccionados = [], compradores = [], configRifa = {}, vistaActiva = 'activas', modoEdicion = false; 
 
@@ -331,10 +335,18 @@
         });
         for(let vID in agrupadas) {
             const v = agrupadas[vID];
-            const subtotal = v.nums.length * configRifa.precio;
-            if(v.pagado) caja += subtotal; else deuda += subtotal;
+            // Lógica de costo modificada:
+            let costoDeEstaVenta = 0;
+            if (configRifa.numPorCombo === 1) {
+                costoDeEstaVenta = v.nums.length * configRifa.precio;
+            } else {
+                costoDeEstaVenta = configRifa.precio; // Costo por combo total
+            }
+            
+            if(v.pagado) caja += costoDeEstaVenta; else deuda += costoDeEstaVenta;
+            
             container.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                <div><strong>${v.nombre}</strong><br><small>#${v.nums.join(',')}</small></div>
+                <div><strong>${v.nombre}</strong><br><small>#${v.nums.join(',')} ($${costoDeEstaVenta})</small></div>
                 <div><button onclick="cambiarEstadoPago('${v.ids.join(',')}', ${v.pagado}, '${v.nombre}', '${v.tel}', '${v.nums.join(',')}')" style="background:${v.pagado?'#22c55e':'#ff4d4d'}; color:white; border:none; padding:8px; border-radius:5px;">${v.pagado?'PAGADO':'DEBE'}</button>
                 <button onclick="eliminarVenta('${v.ids.join(',')}')" style="background:#eee; border:none; padding:8px; border-radius:5px; margin-left:5px;">🔓</button></div></div>`;
         }
@@ -416,29 +428,17 @@
     }
 
     function regresarAActivas(id) {
-        if(confirm(`¿Deseas mover "${id}" de regreso a Rifas en Proceso? (Se quitará la marca de finalizada)`)) {
+        if(confirm(`¿Deseas mover "${id}" de regreso a Rifas en Proceso?`)) {
             db.ref('historial_rifas/' + id).once('value', snap => {
                 const data = snap.val();
-                // Limpiamos los datos de ganador si vuelve a estar activa
-                delete data.config.winNombre;
-                delete data.config.winNumero;
-                delete data.config.winFotos;
+                delete data.config.winNombre; delete data.config.winNumero; delete data.config.winFotos;
                 db.ref('rifas_activas/' + id).set(data).then(() => {
                     db.ref('historial_rifas/' + id).remove();
-                    alert("Rifa re-activada correctamente.");
+                    alert("Rifa re-activada.");
                 });
             });
         }
     }
-
-    function difundirOferta(id) {
-        db.ref('rifas_activas/' + id + '/config').once('value', snap => {
-            const conf = snap.val();
-            if(!conf.ofertaTexto) return alert("Esta rifa no tiene una oferta activa configurada.");
-            const msg = `¡AVISO DE SUERTE EN RIFAS EL TAPATÍO! 🍀\n\nActivamos una OFERTA RELÁMPAGO en: *${id}*\n\n💎 PROMO: *${conf.ofertaTexto}*\n\nAparta aquí: ${window.location.href}`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-        });
-    } 
 
     function enviarAPapelera(id) { if(confirm("¿A papelera?")) db.ref('rifas_activas/'+id).once('value', s => { db.ref('papelera/'+id).set(s.val()).then(() => db.ref('rifas_activas/'+id).remove()); }); }
     function enviarAPapeleraHistorial(id) { if(confirm("¿Enviar historial a papelera?")) db.ref('historial_rifas/'+id).once('value', s => { db.ref('papelera/'+id).set(s.val()).then(() => db.ref('historial_rifas/'+id).remove()); }); }
@@ -469,19 +469,25 @@
     function regresarMenuAdmin() { modoEdicion = false; document.getElementById('adminMenuPrincipal').style.display='block'; document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); }
     
     function accesoAdmin() { 
-        const user = prompt("👤 Correo de Administrador:");
-        if(user === "jose.infante123195@gmail.com") {
-            const pass = prompt("🔑 Contraseña:");
-            if(pass === "rifa2369") {
-                document.getElementById('adminPanel').style.display='block'; 
-                document.getElementById('pantallaInicio').style.display='none'; 
-            } else { alert("Contraseña incorrecta"); }
-        } else { alert("Usuario no autorizado"); }
+        const uIn = prompt("👤 Correo:");
+        const pIn = prompt("🔑 Clave:");
+        // Comparación ofuscada
+        if(btoa(uIn) === _u && btoa(pIn) === _p) {
+            document.getElementById('adminPanel').style.display='block'; 
+            document.getElementById('pantallaInicio').style.display='none'; 
+        } else { alert("Credenciales incorrectas"); }
     }
     
     function volverInicio() { document.getElementById('adminPanel').style.display='none'; document.getElementById('rifaContenedor').style.display='none'; document.getElementById('pantallaInicio').style.display='block'; cargarLista(); }
     function cambiarSeccion(t) { vistaActiva = t; document.getElementById('btnTabActivas').classList.toggle('active', t==='activas'); document.getElementById('btnTabHistorial').classList.toggle('active', t==='historial'); cargarLista(); }
-    function descargarCSV() { let csv = "Nombre,Telefono,Numeros,Pagado\n"; compradores.forEach(c => csv += `"${c.nombre}","${c.tel}","${c.numero}","${c.pagado?'SI':'NO'}"\n`); const blob = new Blob([csv], { type: 'text/csv' }); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.setAttribute('href', url); a.setAttribute('download', `${rifaActualID}.csv`); a.click(); }
+    function descargarCSV() { 
+        let csv = "Nombre,Telefono,Numeros,Pagado,Monto\n"; 
+        compradores.forEach(c => {
+            let m = (configRifa.numPorCombo === 1) ? configRifa.precio : (configRifa.precio / configRifa.numPorCombo); // Monto por cada número en el CSV para que sume bien
+            csv += `"${c.nombre}","${c.tel}","${c.numero}","${c.pagado?'SI':'NO'}","${m}"\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' }); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.setAttribute('href', url); a.setAttribute('download', `${rifaActualID}.csv`); a.click(); 
+    }
     
     cargarLista();
 </script>
