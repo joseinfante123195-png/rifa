@@ -1,8 +1,0 @@
-body { font-family: sans-serif; text-align: center; background: #f4f4f4; }
-.container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
-.campos input { width: 90%; padding: 10px; margin: 5px; border: 1px solid #ccc; }
-.cuadricula { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin: 20px 0; }
-.boton-numero { padding: 10px; border: 1px solid #ddd; cursor: pointer; background: #fff; }
-.seleccionado { background: #ffcc00 !important; font-weight: bold; }
-.ocupado { background: #ff4d4d !important; color: white; cursor: not-allowed; }
-#btn-apartar { width: 100%; padding: 15px; background: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; }
