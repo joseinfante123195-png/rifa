@@ -1,495 +1,129 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rifas El Tapatío 🍀</title>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet"> 
+<style>
+:root { 
+    --gold: #d4af37; 
+    --gold-light: #f1d592; 
+    --dark-100: #020617; 
+    --dark-200: #0f172a; 
+    --card: #1e293b;
+    --success: #22c55e; 
+    --danger: #ef4444; 
+    --info: #3b82f6; 
+}
 
-    <style>
-        :root { --gold: #d4af37; --gold-light: #f1d592; --dark-100: #0f172a; --dark-200: #1e293b; --success: #22c55e; --danger: #ff4d4d; --info: #3b82f6; }
-        body { background-color: var(--dark-100) !important; color: #f8fafc; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; }
-        .container { max-width: 600px; margin: auto; background: var(--dark-200); border-radius: 20px; padding: 15px; border: 1px solid #334155; }
-        
-        .trebol-admin { cursor: pointer; display: inline-block; transition: transform 0.3s; }
-        .trebol-admin:active { transform: scale(1.2); }
-        
-        @keyframes blinker { 50% { opacity: 0; } }
-        .oferta-tag { background: var(--danger); color: white; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 5px; margin-top: 5px; display: inline-block; animation: blinker 1s linear infinite; text-transform: uppercase; } 
+/* FONDO MÁS PRO */
+body { 
+    background: linear-gradient(135deg,#020617,#0f172a) !important; 
+    color: #f8fafc; 
+    font-family: 'Segoe UI', sans-serif; 
+}
 
-        .rifa-card { background: #1e293b; border-radius: 15px; padding: 12px; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; border: 1px solid #334155; position: relative; overflow: hidden; }
-        .rifa-card img { width: 95px; height: 95px; border-radius: 10px; object-fit: cover; border: 1px solid var(--gold); }
-        .rifa-info { margin-left: 15px; flex: 1; }
-        .rifa-badge { position: absolute; top: 0; right: 0; background: var(--gold); color: black; font-size: 10px; padding: 5px 12px; font-weight: bold; border-bottom-left-radius: 12px; text-transform: uppercase; }
-        
-        .timer-text { font-size: 11px; color: var(--gold-light); font-weight: bold; margin-top: 4px; display: block; background: rgba(212, 175, 55, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(212, 175, 55, 0.3); width: fit-content; }
-        .winner-tag { color: var(--success); font-weight: bold; font-size: 11px; margin-top: 5px; border: 1px solid var(--success); padding: 2px 6px; border-radius: 4px; display: inline-block; }
-        
-        .progress-container { background: #0f172a; border-radius: 10px; height: 8px; margin-top: 8px; border: 1px solid #334155; overflow: hidden; }
-        .progress-bar { background: linear-gradient(90deg, var(--gold), #fbbf24); height: 100%; width: 0%; transition: 0.8s; }
-        
-        .combo-leyenda { font-size: 11px; color: var(--gold); font-weight: 800; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px; } 
+/* CONTENEDOR */
+.container { 
+    max-width: 600px; 
+    margin: auto; 
+    background: transparent;
+}
 
-        .tabs-tapatio { display: flex; gap: 10px; margin-bottom: 20px; padding: 0 5px; }
-        .tab-btn-tapatio { flex: 1; background: #1e293b; color: white; border: 1px solid var(--gold); padding: 14px 10px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-        .tab-btn-tapatio.active { background: var(--gold); color: black; } 
+/* TARJETAS RIFA */
+.rifa-card { 
+    background: linear-gradient(145deg,#1e293b,#0f172a);
+    border-radius: 15px; 
+    padding: 12px; 
+    cursor: pointer; 
+    margin-bottom: 15px; 
+    display: flex; 
+    align-items: center; 
+    border: 1px solid #1e293b;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    transition: 0.3s;
+}
+.rifa-card:hover { transform: scale(1.02); }
 
-        .grid-numeros { display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 5px; max-height: 280px; overflow-y: auto; padding: 10px; background: #0f172a; border-radius: 12px; }
-        .numero { height: 38px; display: flex; align-items: center; justify-content: center; background: #334155; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; border: 1px solid #475569; color: white; }
-        .numero.ocupado { opacity: 0.1; background: #000 !important; pointer-events: none; }
-        .numero.seleccionado { background: var(--gold) !important; color: black !important; } 
+/* IMAGEN */
+.rifa-card img { 
+    width: 95px; 
+    height: 95px; 
+    border-radius: 10px; 
+    object-fit: cover; 
+    border: 2px solid var(--gold); 
+}
 
-        .btn-azar { background: #334155; color: var(--gold-light); border: 1px solid var(--gold); padding: 10px; border-radius: 10px; width: 100%; margin-bottom: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; } 
+/* INFO */
+.rifa-info h4 {
+    font-size:16px;
+}
 
-        #adminPanel { background: #f8fafc; color: #1e293b; border-radius: 20px; padding: 15px; margin-top: 20px; display: none; min-height: 80vh; overflow-y: auto;}
-        .admin-nav-btn { width: 100%; padding: 18px; border-radius: 15px; border: 1px solid #ddd; background: white; font-weight: bold; cursor: pointer; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .admin-section-content { display: none; }
-        .admin-section-content.active { display: block; }
-        .admin-card { background: white; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #eee; }
-        
-        input, select, textarea { padding: 12px; border-radius: 10px; border: 1px solid #ccc; width: 100%; margin-bottom: 12px; box-sizing: border-box; font-family: inherit; }
-        .btn-gold { background: linear-gradient(45deg, var(--gold), #fbbf24); color: black; font-weight: 900; border: none; padding: 15px; border-radius: 12px; cursor: pointer; width: 100%; }
-        .btn-finish { background: #000; color: var(--gold); border: 2px solid var(--gold); padding: 15px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: 900; margin-top: 10px; }
-        label { display: block; font-size: 11px; font-weight: bold; color: #64748b; margin-bottom: 4px; }
-        
-        .finanzas-header { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .finanzas-stat { background: #f1f5f9; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0; }
-        .finanzas-stat span { display: block; font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; }
-        .finanzas-stat strong { font-size: 18px; color: #1e293b; }
-        .finanzas-pills { display: flex; gap: 5px; margin-top: 10px; }
-        .pill { flex: 1; padding: 8px; border-radius: 8px; font-size: 10px; font-weight: bold; text-align: center; color: white; }
-        .btn-csv { background: #000; color: white; padding: 10px; border-radius: 10px; border: none; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
-    </style>
-</head>
-<body> 
+/* BOTONES */
+.btn-gold { 
+    background: linear-gradient(45deg,var(--gold),#fbbf24); 
+    color: black; 
+    font-weight: 900; 
+    border: none; 
+    padding: 16px; 
+    border-radius: 12px; 
+    cursor: pointer; 
+    width: 100%;
+    font-size:16px;
+    box-shadow: 0 5px 20px rgba(212,175,55,0.5);
+    transition:0.3s;
+}
+.btn-gold:hover { transform: scale(1.03); }
 
-<div id="pantallaInicio">
-    <div style="text-align:center; padding: 25px 15px;">
-        <h1 style="color:var(--gold); margin:0; font-size: 26px; font-weight: 900;">
-            RIFAS EL TAPATÍO <span class="trebol-admin" onclick="accesoAdmin()">🍀</span>
-        </h1>
-    </div>
-    <div class="tabs-tapatio">
-        <button id="btnTabActivas" class="tab-btn-tapatio active" onclick="cambiarSeccion('activas')">Rifas Activas</button>
-        <button id="btnTabHistorial" class="tab-btn-tapatio" onclick="cambiarSeccion('historial')">Historial</button>
-    </div>
-    <div id="listaRifas"></div>
-</div> 
+/* BOTÓN AZAR */
+.btn-azar {
+    background: #0f172a;
+    border: 1px solid var(--gold);
+    box-shadow: 0 0 10px rgba(212,175,55,0.3);
+}
 
-<div id="rifaContenedor" class="container animate__animated animate__fadeIn" style="display:none;">
-    <button onclick="volverInicio()" style="background:none; color:#94a3b8; border:none; cursor:pointer; margin-bottom:15px; font-weight:bold;">❮ VOLVER</button>
-    <div id="contenidoRifa">
-        <img id="premioImgVer" src="" style="width:100%; border-radius:15px; border: 1px solid var(--gold); margin-bottom:15px;">
-        <h2 id="tituloRifa" style="text-align:center; color:var(--gold-light); margin-bottom:10px;"></h2>
-        <div id="countdownRifaDetalle" class="timer-text" style="margin: 0 auto 15px auto; font-size: 14px;"></div>
-        <div id="infoGanadorUsuario" style="display:none; background:#1e293b; border:1px solid var(--success); padding:10px; border-radius:10px; margin-bottom:15px; text-align:center;">
-            <h4 style="color:var(--success); margin:0;">🏆 GANADOR</h4>
-            <p id="txtGanadorDetalle" style="margin:5px 0; font-weight:bold;"></p>
-        </div>
-        <div id="galeriaEvidencia" style="display:flex; gap:10px; overflow-x:auto; margin-bottom:15px;"></div>
-        <div id="barraProgresoUser">
-            <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:bold; margin-bottom:5px;">
-                <span>DISPONIBLES: <span id="txtDisponibles" style="color:var(--gold)">0</span></span>
-                <span id="txtPorcentaje">0%</span>
-            </div>
-            <div class="progress-container"><div id="bar" class="progress-bar"></div></div>
-            <div id="leyendaComboRifa" class="combo-leyenda"></div>
-        </div>
-        <div id="seccionCompra" style="margin-top:20px;">
-            <input type="text" id="nombre" placeholder="Nombre completo">
-            <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)">
-            <button class="btn-azar" onclick="seleccionarAlAzar()">🎲 SELECCIÓN AL AZAR</button>
-            <div id="tablero" class="grid-numeros"></div>
-            <button onclick="registrarPro()" class="btn-gold" style="margin-top:20px;">APARTAR MI LUGAR 🚀</button>
-        </div>
-    </div>
-</div> 
+/* NUMEROS */
+.numero { 
+    height: 40px; 
+    background: #1e293b; 
+    border-radius: 8px; 
+    border: 1px solid #334155; 
+    transition:0.2s;
+}
+.numero:hover { transform: scale(1.1); }
 
-<div id="adminPanel" class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3>⚙️ ADMIN</h3>
-        <button onclick="volverInicio()" style="background:none; border:none; font-size: 20px;">✕</button>
-    </div>
-    <div id="adminMenuPrincipal">
-        <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-proceso')"><span>📊 GESTIÓN ACTIVAS</span> ❯</button>
-        <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-gestion-historial')"><span>📜 GESTIÓN HISTORIAL</span> ❯</button>
-        <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-creador')"><span>🆕 NUEVA RIFA</span> ❯</button>
-        <button class="admin-nav-btn" onclick="verSeccionAdmin('sec-papelera')"><span>🗑️ PAPELERA</span> ❯</button>
-    </div>
-    <div id="sec-proceso" class="admin-section-content">
-        <button onclick="regresarMenuAdmin()" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
-        <div id="listaGestionRifas"></div>
-    </div>
-    <div id="sec-gestion-historial" class="admin-section-content">
-        <button onclick="regresarMenuAdmin()" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
-        <div id="listaGestionHistorial"></div>
-    </div>
-    <div id="sec-finanzas" class="admin-section-content">
-        <button onclick="verSeccionAdmin('sec-proceso')" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
-        <div class="admin-card">
-            <h3 id="finanzasNombreRifa" style="margin:0 0 10px 0; color:var(--gold);"></h3>
-            <div class="finanzas-header">
-                <div class="finanzas-stat"><span>Caja</span><strong id="fin-caja" style="color:var(--success)">$0</strong></div>
-                <div class="finanzas-stat"><span>Debe</span><strong id="fin-deuda" style="color:var(--danger)">$0</strong></div>
-            </div>
-            <div class="finanzas-pills">
-                <div class="pill" style="background:var(--success)">PAGADOS: <span id="pill-pagados">0</span></div>
-                <div class="pill" style="background:var(--danger)">APARTADOS: <span id="pill-apartados">0</span></div>
-                <div class="pill" style="background:var(--dark-100)">LIBRES: <span id="pill-libres">0</span></div>
-            </div>
-            <button onclick="descargarCSV()" class="btn-csv">📥 DESCARGAR CSV</button>
-        </div>
-        <div id="listaPagosFinanzas" class="admin-card" style="padding:0;"></div>
-    </div>
-    <div id="sec-creador" class="admin-section-content">
-        <button onclick="regresarMenuAdmin()" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ CANCELAR</button>
-        <div class="admin-card">
-            <h4 id="creadorTitulo">Configuración</h4>
-            <label>Nombre</label><input type="text" id="newRifaNombre">
-            <label>Total de Números</label><input type="number" id="newRifaTotal">
-            <label>Precio ($)</label><input type="number" id="newRifaPrecio">
-            <label>URL Foto</label><input type="text" id="newRifaFoto">
-            <label>Fecha Sorteo</label><input type="datetime-local" id="newRifaFecha">
-            <label>Combo de Selección</label><select id="newRifaModo"><option value="1">Individual (Costo x número)</option><option value="2">Combo 2 (Costo total combo)</option><option value="4">Combo 4 (Costo total combo)</option><option value="5">Combo 5 (Costo total combo)</option></select>
-            <div style="background:#fff5f5; padding:12px; border-radius:12px; border:1px solid #feb2b2; margin-top:10px;">
-                <label style="color:#c53030">Oferta</label><input type="text" id="ofertaTexto">
-                <label style="color:#c53030">Expira</label><input type="datetime-local" id="ofertaExpira">
-                <button onclick="document.getElementById('ofertaTexto').value='';document.getElementById('ofertaExpira').value='';" style="background:#e53e3e; color:white; border:none; padding:8px; border-radius:8px; width:100%; font-weight:bold; cursor:pointer;">❌ ELIMINAR OFERTA</button>
-            </div>
-            <div id="seccionFinalizar" style="display:none; background:#f0f9ff; padding:12px; border-radius:12px; border:1px solid #bae6fd; margin-top:15px;">
-                <h4 style="color:#0369a1; margin-top:0;">🏆 GANADOR</h4>
-                <label>Nombre</label><input type="text" id="winNombre">
-                <label>Boleto</label><input type="number" id="winNumero">
-                <label>Evidencia (URL, URL)</label><textarea id="winFotos" rows="2"></textarea>
-                <button onclick="finalizarRifa()" class="btn-finish">FINALIZAR 🏆</button>
-            </div>
-            <button onclick="crearNuevaRifa()" class="btn-gold" style="margin-top:20px;">GUARDAR RIFA 🚀</button>
-        </div>
-    </div>
-    <div id="sec-papelera" class="admin-section-content">
-        <button onclick="regresarMenuAdmin()" style="margin-bottom:15px; border:none; background:none; color:var(--info); font-weight:bold;">❮ REGRESAR</button>
-        <div id="listaPapelera"></div>
-    </div>
-</div> 
+.numero.seleccionado { 
+    background: var(--gold) !important; 
+    color: black !important; 
+    box-shadow: 0 0 10px var(--gold);
+}
 
-<script>
-    const firebaseConfig = { apiKey: "AIzaSyAchA8tvM4Hum-anybTex8nzLNxKa8yz_M", authDomain: "rifa01-6ff39.firebaseapp.com", databaseURL: "https://rifa01-6ff39-default-rtdb.firebaseio.com", projectId: "rifa01-6ff39" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database(); 
+/* PROGRESS */
+.progress-container { 
+    background: #020617; 
+    border-radius: 10px; 
+    height: 10px; 
+    overflow: hidden; 
+}
+.progress-bar { 
+    background: linear-gradient(90deg,var(--gold),#fbbf24); 
+}
 
-    // OFUSCACIÓN DE CREDENCIALES (Base64)
-    const _u = "am9zZS5pbmZhbnRlMTIzMTk1QGdtYWlsLmNvbQ=="; 
-    const _p = "cmlmYTIzNjk=";
+/* ADMIN PANEL MÁS LIMPIO */
+#adminPanel { 
+    background: #f8fafc; 
+    border-radius: 20px; 
+}
 
-    let rifaActualID = "", seleccionados = [], compradores = [], configRifa = {}, vistaActiva = 'activas', modoEdicion = false; 
+/* INPUTS */
+input, select, textarea { 
+    background:#f8fafc;
+    border-radius: 10px; 
+}
 
-    setInterval(() => {
-        const ahora = new Date().getTime();
-        document.querySelectorAll('.oferta-box').forEach(box => {
-            const exp = new Date(box.dataset.expira).getTime();
-            if(exp && ahora > exp) box.style.display = 'none';
-        });
-        document.querySelectorAll('.countdown-live').forEach(el => {
-            const fSorteo = new Date(el.dataset.fecha).getTime();
-            const diff = fSorteo - ahora;
-            if (diff > 0) {
-                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                el.innerText = `Faltan: ${d}d ${h}h ${m}m`;
-            } else { el.innerText = "¡Sorteo en curso!"; }
-        });
-    }, 1000); 
+/* EFECTO PREMIUM */
+.rifa-card::after {
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(120deg,transparent,rgba(255,255,255,0.05),transparent);
+    opacity:0;
+    transition:0.5s;
+}
+.rifa-card:hover::after { opacity:1; }
 
-    function cargarLista() {
-        const path = vistaActiva === 'activas' ? 'rifas_activas' : 'historial_rifas';
-        db.ref(path).on('value', snap => {
-            const container = document.getElementById('listaRifas'); container.innerHTML = '';
-            const data = snap.val(); if(!data) return;
-            for(let id in data) {
-                const conf = data[id].config;
-                const apartados = data[id].participantes ? Object.keys(data[id].participantes).length : 0;
-                const porc = Math.floor((apartados / conf.total) * 100);
-                const expT = conf.ofertaExpira ? new Date(conf.ofertaExpira).getTime() : 0;
-                const ofertaHtml = (conf.ofertaTexto && (!expT || new Date().getTime() < expT)) 
-                    ? `<div class="oferta-tag oferta-box" data-expira="${conf.ofertaExpira}">${conf.ofertaTexto}</div>` : '';
-                const winTag = conf.winNombre ? `<div class="winner-tag">🏆 ${conf.winNombre} (#${conf.winNumero})</div>` : '';
-                const countdownHtml = (vistaActiva === 'activas' && conf.fecha) 
-                    ? `<span class="timer-text countdown-live" data-fecha="${conf.fecha}">Calculando...</span>` : '';
-                const leyCombo = (conf.numPorCombo > 1) ? `<div class="combo-leyenda">Rifa con ${conf.numPorCombo} oportunidades</div>` : '';
-                container.innerHTML += `<div class="rifa-card" onclick="abrirRifa('${id}', '${vistaActiva}')">
-                    <div class="rifa-badge">$${conf.precio}</div><img src="${conf.foto}"><div class="rifa-info">
-                    <h4 style="margin:0; color:var(--gold);">${id}</h4>
-                    ${ofertaHtml}${winTag}${countdownHtml}
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
-                        <div class="progress-container" style="flex:1;"><div class="progress-bar" style="width:${porc}%"></div></div>
-                        <span style="font-size:10px; margin-left:8px; font-weight:bold; color:var(--gold-light);">${porc}%</span>
-                    </div>${leyCombo}</div></div>`;
-            }
-        });
-    } 
-
-    function abrirRifa(id, tipo) {
-        rifaActualID = id; seleccionados = [];
-        document.getElementById('pantallaInicio').style.display = 'none';
-        document.getElementById('rifaContenedor').style.display = 'block';
-        db.ref((tipo === 'activas' ? 'rifas_activas/' : 'historial_rifas/') + id).on('value', snap => {
-            const data = snap.val(); if(!data) return;
-            configRifa = data.config;
-            compradores = data.participantes ? Object.entries(data.participantes).map(([k,v]) => ({id:k, ...v})) : [];
-            document.getElementById('tituloRifa').innerText = id;
-            document.getElementById('premioImgVer').src = configRifa.foto;
-            document.getElementById('leyendaComboRifa').innerText = configRifa.numPorCombo > 1 ? `Rifa con ${configRifa.numPorCombo} oportunidades` : "Rifa de selección libre";
-            const cdDetalle = document.getElementById('countdownRifaDetalle');
-            if(tipo === 'activas' && configRifa.fecha) { cdDetalle.style.display = 'block'; cdDetalle.className = 'timer-text countdown-live'; cdDetalle.dataset.fecha = configRifa.fecha; } 
-            else { cdDetalle.style.display = 'none'; }
-            if(tipo === 'historial' || configRifa.winNombre) {
-                document.getElementById('seccionCompra').style.display = 'none';
-                document.getElementById('barraProgresoUser').style.display = 'none';
-                document.getElementById('infoGanadorUsuario').style.display = 'block';
-                document.getElementById('txtGanadorDetalle').innerText = `${configRifa.winNombre} (#${configRifa.winNumero})`;
-                const gal = document.getElementById('galeriaEvidencia'); gal.innerHTML = '';
-                if(configRifa.winFotos) configRifa.winFotos.split(',').forEach(u => gal.innerHTML += `<img src="${u.trim()}" style="height:120px; border-radius:10px;">`);
-            } else {
-                document.getElementById('seccionCompra').style.display = 'block';
-                document.getElementById('barraProgresoUser').style.display = 'block';
-                document.getElementById('infoGanadorUsuario').style.display = 'none';
-                dibujarTablero();
-            }
-        });
-    } 
-
-    function dibujarTablero() {
-        const tab = document.getElementById('tablero'); tab.innerHTML = '';
-        const ocupados = compradores.map(c => parseInt(c.numero));
-        for(let i=0; i < configRifa.total; i++) {
-            const div = document.createElement('div');
-            const ocu = ocupados.includes(i);
-            div.className = 'numero' + (ocu ? ' ocupado' : (seleccionados.includes(i) ? ' seleccionado' : ''));
-            div.innerText = i < 10 ? "0" + i : i;
-            if(!ocu) div.onclick = () => {
-                const lim = configRifa.numPorCombo || 1;
-                if(seleccionados.includes(i)) { seleccionados = seleccionados.filter(n => n !== i); } 
-                else {
-                    if(lim === 1) { seleccionados.push(i); } 
-                    else if(seleccionados.length < lim) { seleccionados.push(i); }
-                }
-                dibujarTablero();
-            };
-            tab.appendChild(div);
-        }
-        document.getElementById('txtDisponibles').innerText = configRifa.total - ocupados.length;
-        const p = Math.floor((ocupados.length / configRifa.total) * 100);
-        document.getElementById('txtPorcentaje').innerText = p + "%";
-        document.getElementById('bar').style.width = p + "%";
-    } 
-
-    function seleccionarAlAzar() {
-        const lim = configRifa.numPorCombo || 1;
-        const ocu = compradores.map(c => parseInt(c.numero));
-        const disp = [];
-        for(let i=0; i < configRifa.total; i++) if(!ocu.includes(i)) disp.push(i);
-        const cantidadAZar = lim; 
-        seleccionados = [];
-        while(seleccionados.length < cantidadAZar && disp.length > 0) {
-            const idx = Math.floor(Math.random() * disp.length);
-            seleccionados.push(disp.splice(idx, 1)[0]);
-        }
-        dibujarTablero();
-    } 
-
-    function registrarPro() {
-        const n = document.getElementById('nombre').value, t = document.getElementById('telefono').value;
-        const lim = configRifa.numPorCombo || 1;
-        if(!n || t.length < 10) return alert("Completa tus datos");
-        if(lim === 1 && seleccionados.length < 1) return alert("Elige al menos un número");
-        if(lim > 1 && seleccionados.length !== lim) return alert(`Debes seleccionar exactamente ${lim} números para este combo`);
-        const vID = Date.now();
-        seleccionados.forEach(num => { db.ref('rifas_activas/'+rifaActualID+'/participantes').push({ nombre:n, tel:t, numero:num, pagado:false, ventaID: vID }); });
-        
-        const msg = `¡Hola, *Rifas El Tapatío*! 🍀\n\nAcabo de apartar mis números en la página y quiero reportar mi lugar:\n\n🎫 *Rifa:* ${rifaActualID}\n🔢 *Mis Números:* ${seleccionados.join(', ')}\n👤 *Nombre:* ${n}\n\nQuedo atento para mandarte mi comprobante de pago. ✨`;
-        window.open(`https://wa.me/523310711283?text=${encodeURIComponent(msg)}`, '_blank');
-        volverInicio();
-    } 
-
-    function abrirFinanzas(id) {
-        rifaActualID = id; document.getElementById('finanzasNombreRifa').innerText = id; verSeccionAdmin('sec-finanzas');
-        db.ref('rifas_activas/' + id).on('value', snap => {
-            const data = snap.val(); if(!data) return;
-            configRifa = data.config;
-            compradores = data.participantes ? Object.entries(data.participantes).map(([k,v]) => ({id:k, ...v})) : [];
-            actualizarFinanzasUI();
-        });
-    } 
-
-    function actualizarFinanzasUI() {
-        const container = document.getElementById('listaPagosFinanzas'); container.innerHTML = '';
-        let caja = 0, deuda = 0, pCont = 0, aCont = 0;
-        const agrupadas = {};
-        compradores.forEach(c => {
-            if(c.pagado) pCont++; else aCont++;
-            if(!agrupadas[c.ventaID]) agrupadas[c.ventaID] = { nombre:c.nombre, tel:c.tel, nums:[], pagado:c.pagado, ids:[] };
-            agrupadas[c.ventaID].nums.push(c.numero); agrupadas[c.ventaID].ids.push(c.id);
-        });
-        for(let vID in agrupadas) {
-            const v = agrupadas[vID];
-            // Lógica de costo modificada:
-            let costoDeEstaVenta = 0;
-            if (configRifa.numPorCombo === 1) {
-                costoDeEstaVenta = v.nums.length * configRifa.precio;
-            } else {
-                costoDeEstaVenta = configRifa.precio; // Costo por combo total
-            }
-            
-            if(v.pagado) caja += costoDeEstaVenta; else deuda += costoDeEstaVenta;
-            
-            container.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                <div><strong>${v.nombre}</strong><br><small>#${v.nums.join(',')} ($${costoDeEstaVenta})</small></div>
-                <div><button onclick="cambiarEstadoPago('${v.ids.join(',')}', ${v.pagado}, '${v.nombre}', '${v.tel}', '${v.nums.join(',')}')" style="background:${v.pagado?'#22c55e':'#ff4d4d'}; color:white; border:none; padding:8px; border-radius:5px;">${v.pagado?'PAGADO':'DEBE'}</button>
-                <button onclick="eliminarVenta('${v.ids.join(',')}')" style="background:#eee; border:none; padding:8px; border-radius:5px; margin-left:5px;">🔓</button></div></div>`;
-        }
-        document.getElementById('fin-caja').innerText = "$" + caja;
-        document.getElementById('fin-deuda').innerText = "$" + deuda;
-        document.getElementById('pill-pagados').innerText = pCont;
-        document.getElementById('pill-apartados').innerText = aCont;
-        document.getElementById('pill-libres').innerText = configRifa.total - (pCont + aCont);
-    } 
-
-    function editarRifa(id) {
-        modoEdicion = true; rifaActualID = id;
-        db.ref('rifas_activas/' + id + '/config').once('value', snap => {
-            const conf = snap.val();
-            document.getElementById('newRifaNombre').value = id;
-            document.getElementById('newRifaTotal').value = conf.total;
-            document.getElementById('newRifaPrecio').value = conf.precio;
-            document.getElementById('newRifaFoto').value = conf.foto;
-            document.getElementById('newRifaFecha').value = conf.fecha;
-            document.getElementById('newRifaModo').value = conf.numPorCombo;
-            document.getElementById('ofertaTexto').value = conf.ofertaTexto || "";
-            document.getElementById('ofertaExpira').value = conf.ofertaExpira || "";
-            document.getElementById('seccionFinalizar').style.display = 'block';
-            verSeccionAdmin('sec-creador');
-        });
-    } 
-
-    function crearNuevaRifa() {
-        const n = document.getElementById('newRifaNombre').value;
-        const config = {
-            total: parseInt(document.getElementById('newRifaTotal').value),
-            precio: parseInt(document.getElementById('newRifaPrecio').value),
-            foto: document.getElementById('newRifaFoto').value,
-            fecha: document.getElementById('newRifaFecha').value,
-            numPorCombo: parseInt(document.getElementById('newRifaModo').value),
-            ofertaTexto: document.getElementById('ofertaTexto').value,
-            ofertaExpira: document.getElementById('ofertaExpira').value
-        };
-        db.ref('rifas_activas/' + n + '/config').update(config).then(() => { alert("Guardado"); regresarMenuAdmin(); });
-    } 
-
-    function finalizarRifa() {
-        const wn = document.getElementById('winNombre').value, wnum = document.getElementById('winNumero').value;
-        if(!wn || !wnum) return alert("Faltan datos");
-        db.ref('rifas_activas/' + rifaActualID).once('value', snap => {
-            const data = snap.val(); data.config.winNombre = wn; data.config.winNumero = wnum; data.config.winFotos = document.getElementById('winFotos').value;
-            db.ref('historial_rifas/' + rifaActualID).set(data).then(() => { db.ref('rifas_activas/' + rifaActualID).remove(); alert("Finalizada"); regresarMenuAdmin(); });
-        });
-    } 
-
-    function cargarListaGestion() {
-        db.ref('rifas_activas').on('value', snap => {
-            const container = document.getElementById('listaGestionRifas'); container.innerHTML = '';
-            const data = snap.val(); if(!data) return;
-            for(let id in data) {
-                const conf = data[id].config;
-                const tieneOferta = conf.ofertaTexto && conf.ofertaTexto.length > 0;
-                container.innerHTML += `<div class="admin-card" style="display:flex; justify-content:space-between; align-items:center;">
-                    <strong>${id}</strong><div>
-                    <button onclick="difundirOferta('${id}')" style="background:${tieneOferta?'var(--info)':'#ccc'}; color:white; border:none; padding:8px; border-radius:5px; margin-right:5px;">📢</button>
-                    <button onclick="abrirFinanzas('${id}')" style="background:var(--success); color:white; border:none; padding:8px; border-radius:5px; margin-right:5px;">💰</button>
-                    <button onclick="editarRifa('${id}')" style="background:#eee; border:none; padding:8px; border-radius:5px; margin-right:5px;">✏️</button>
-                    <button onclick="enviarAPapelera('${id}')" style="background:none; border:none; font-size:18px;">🗑️</button></div></div>`;
-            }
-        });
-    } 
-
-    function cargarListaHistorialAdmin() {
-        db.ref('historial_rifas').on('value', snap => {
-            const container = document.getElementById('listaGestionHistorial'); container.innerHTML = '';
-            const data = snap.val(); if(!data) return;
-            for(let id in data) {
-                container.innerHTML += `<div class="admin-card" style="display:flex; justify-content:space-between; align-items:center;">
-                    <strong>📜 ${id}</strong><div>
-                    <button onclick="regresarAActivas('${id}')" style="background:var(--gold); color:black; border:none; padding:8px 12px; border-radius:8px; font-weight:bold; cursor:pointer;">RE-ACTIVAR 🔄</button>
-                    <button onclick="enviarAPapeleraHistorial('${id}')" style="background:none; border:none; font-size:18px; margin-left:10px;">🗑️</button></div></div>`;
-            }
-        });
-    }
-
-    function regresarAActivas(id) {
-        if(confirm(`¿Deseas mover "${id}" de regreso a Rifas en Proceso?`)) {
-            db.ref('historial_rifas/' + id).once('value', snap => {
-                const data = snap.val();
-                delete data.config.winNombre; delete data.config.winNumero; delete data.config.winFotos;
-                db.ref('rifas_activas/' + id).set(data).then(() => {
-                    db.ref('historial_rifas/' + id).remove();
-                    alert("Rifa re-activada.");
-                });
-            });
-        }
-    }
-
-    function enviarAPapelera(id) { if(confirm("¿A papelera?")) db.ref('rifas_activas/'+id).once('value', s => { db.ref('papelera/'+id).set(s.val()).then(() => db.ref('rifas_activas/'+id).remove()); }); }
-    function enviarAPapeleraHistorial(id) { if(confirm("¿Enviar historial a papelera?")) db.ref('historial_rifas/'+id).once('value', s => { db.ref('papelera/'+id).set(s.val()).then(() => db.ref('historial_rifas/'+id).remove()); }); }
-    function cargarPapelera() { db.ref('papelera').on('value', snap => { const container = document.getElementById('listaPapelera'); container.innerHTML = ''; const data = snap.val(); for(let id in data) container.innerHTML += `<div class="admin-card" style="display:flex; justify-content:space-between;"><strong>${id}</strong><button onclick="recuperarRifa('${id}')">🔄</button></div>`; }); }
-    function recuperarRifa(id) { db.ref('papelera/'+id).once('value', s => { db.ref('rifas_activas/'+id).set(s.val()).then(() => db.ref('papelera/'+id).remove()); }); }
-    
-    function cambiarEstadoPago(idsStr, estActual, nombreCli, telCli, numsCli) {
-        const nuevoEstado = !estActual;
-        idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).update({pagado: nuevoEstado}));
-        if (nuevoEstado === true) {
-            const fechaSorteo = configRifa.fecha ? new Date(configRifa.fecha).toLocaleString() : "Pendiente";
-            const msg = `¡Recibido, *${nombreCli}*! 🍀\n\nTus números para la rifa de *${rifaActualID}* ya quedaron registrados.\n\n🎫 *Tus números:* ${numsCli}\n🏆 *Sorteo:* ${fechaSorteo}\n\n¡Mucha suerte! ✨`;
-            window.open(`https://wa.me/52${telCli}?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-    } 
-
-    function eliminarVenta(idsStr) { if(confirm("¿Liberar?")) idsStr.split(',').forEach(id => db.ref('rifas_activas/'+rifaActualID+'/participantes/'+id).remove()); }
-    
-    function verSeccionAdmin(id) { 
-        document.getElementById('adminMenuPrincipal').style.display='none'; 
-        document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); 
-        document.getElementById(id).classList.add('active'); 
-        if(id==='sec-proceso') cargarListaGestion(); 
-        if(id==='sec-gestion-historial') cargarListaHistorialAdmin();
-        if(id==='sec-papelera') cargarPapelera(); 
-    }
-
-    function regresarMenuAdmin() { modoEdicion = false; document.getElementById('adminMenuPrincipal').style.display='block'; document.querySelectorAll('.admin-section-content').forEach(s => s.classList.remove('active')); }
-    
-    function accesoAdmin() { 
-        const uIn = prompt("👤 Correo:");
-        const pIn = prompt("🔑 Clave:");
-        // Comparación ofuscada
-        if(btoa(uIn) === _u && btoa(pIn) === _p) {
-            document.getElementById('adminPanel').style.display='block'; 
-            document.getElementById('pantallaInicio').style.display='none'; 
-        } else { alert("Credenciales incorrectas"); }
-    }
-    
-    function volverInicio() { document.getElementById('adminPanel').style.display='none'; document.getElementById('rifaContenedor').style.display='none'; document.getElementById('pantallaInicio').style.display='block'; cargarLista(); }
-    function cambiarSeccion(t) { vistaActiva = t; document.getElementById('btnTabActivas').classList.toggle('active', t==='activas'); document.getElementById('btnTabHistorial').classList.toggle('active', t==='historial'); cargarLista(); }
-    function descargarCSV() { 
-        let csv = "Nombre,Telefono,Numeros,Pagado,Monto\n"; 
-        compradores.forEach(c => {
-            let m = (configRifa.numPorCombo === 1) ? configRifa.precio : (configRifa.precio / configRifa.numPorCombo); // Monto por cada número en el CSV para que sume bien
-            csv += `"${c.nombre}","${c.tel}","${c.numero}","${c.pagado?'SI':'NO'}","${m}"\n`;
-        });
-        const blob = new Blob([csv], { type: 'text/csv' }); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.setAttribute('href', url); a.setAttribute('download', `${rifaActualID}.csv`); a.click(); 
-    }
-    
-    cargarLista();
-</script>
-</body>
-</html>
+</style>
