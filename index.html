@@ -1,163 +1,282 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rifas El Tapatío 🍀</title>
-
-<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-
-<style>
-:root {
-  --gold:#d4af37;
-  --dark:#0f172a;
-}
-
-body{
-  background:var(--dark);
-  color:white;
-  font-family:sans-serif;
-}
-
-.numero{
-  padding:10px;
-  margin:3px;
-  background:#334155;
-  display:inline-block;
-  cursor:pointer;
-}
-
-.numero.seleccionado{
-  background:gold;
-  color:black;
-}
-
-.numero.ocupado{
-  background:black;
-  opacity:.3;
-  pointer-events:none;
-}
-
-.container{
-  max-width:600px;
-  margin:auto;
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rifas El Tapatío</title>
+  <meta name="description" content="Rifas y sorteos con premios originales. Aparta por WhatsApp y recibe avisos de nuevas rifas." />
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+  <style>
+    :root{
+      --bg:#0b1220; --card:#10192d; --card2:#16233d; --text:#eef2ff; --muted:#94a3b8;
+      --line:#24324f; --shadow:0 12px 30px rgba(0,0,0,.25);
+      --accent:#d4af37; --accent2:#f6d873; --cta:#f4c84e;
+      --success:#22c55e; --danger:#ef4444; --info:#38bdf8;
+    }
+    body.theme-premium{--accent:#d4af37;--accent2:#f6d873;--cta:#f4c84e;--bg:#0b1220}
+    body.theme-tech{--accent:#60a5fa;--accent2:#93c5fd;--cta:#60a5fa;--bg:#0a1020}
+    body.theme-cash{--accent:#22c55e;--accent2:#86efac;--cta:#22c55e;--bg:#07130b}
+    body.theme-family{--accent:#8ec5ff;--accent2:#cfe6ff;--cta:#8ec5ff;--bg:#0e1622}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:linear-gradient(180deg,#08101d,var(--bg));color:var(--text)}
+    a{text-decoration:none;color:inherit}
+    .wrap{max-width:1120px;margin:0 auto;padding:16px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:46px;height:46px;border-radius:16px;background:linear-gradient(135deg,var(--accent),#7a5a10);display:grid;place-items:center;color:#111;font-weight:900}
+    .brand h1{margin:0;font-size:18px}
+    .brand p{margin:2px 0 0;color:var(--muted);font-size:12px}
+    .btn{border:0;border-radius:14px;padding:14px 16px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+    .btn-primary{background:linear-gradient(135deg,var(--cta),var(--accent));color:#111}
+    .btn-dark{background:#1b2640;color:var(--text);border:1px solid var(--line)}
+    .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+    .card{background:rgba(16,25,45,.94);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}
+    .hero-main{padding:24px}
+    .hero-main h2{font-size:34px;margin:0 0 10px;line-height:1.08}
+    .hero-main p{margin:0 0 18px;color:#dbe4ff;line-height:1.55;max-width:65ch}
+    .pillrow{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 22px}
+    .pill{font-size:12px;padding:8px 10px;border-radius:999px;background:#16223a;border:1px solid var(--line);color:#dbe4ff}
+    .cta-row{display:flex;gap:10px;flex-wrap:wrap}
+    .hero-side{padding:18px}
+    .hero-side img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:18px;border:1px solid var(--line)}
+    .section{margin-top:18px}
+    .section h3{margin:0 0 12px;font-size:18px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .raffle{overflow:hidden}
+    .raffle img{width:100%;height:190px;object-fit:cover;display:block}
+    .raffle-body{padding:16px}
+    .raffle-body h4{margin:0 0 8px;font-size:18px}
+    .meta{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 12px;color:var(--muted);font-size:12px}
+    .meta span{background:#101a30;border:1px solid var(--line);padding:6px 9px;border-radius:999px}
+    .progress{height:10px;background:#0b1324;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+    .bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%}
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .box{padding:18px}
+    label{font-size:12px;font-weight:800;color:#a8b4d4}
+    input,select,textarea{
+      width:100%;padding:14px 13px;border-radius:14px;border:1px solid #2d3c5f;background:#0e1729;
+      color:var(--text);outline:none;margin-top:8px;margin-bottom:12px
+    }
+    .small{color:var(--muted);font-size:13px;line-height:1.5}
+    .sticky-cta{
+      position:fixed;left:16px;right:16px;bottom:16px;z-index:30;display:none;
+      background:rgba(11,18,32,.96);border:1px solid var(--line);border-radius:18px;padding:10px;box-shadow:var(--shadow)
+    }
+    .footer{color:var(--muted);font-size:12px;padding:18px 2px 90px}
+    .badge{display:inline-block;font-size:11px;padding:6px 10px;border-radius:999px;background:#0f1a30;border:1px solid var(--line);margin-bottom:10px}
+    @media (max-width:900px){
+      .hero,.grid,.split{grid-template-columns:1fr}
+      .hero-main h2{font-size:28px}
+      .sticky-cta{display:block}
+    }
+  </style>
 </head>
+<body class="theme-premium">
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">🍀</div>
+        <div>
+          <h1>Rifas El Tapatío</h1>
+          <p>Captación, venta y seguimiento para rifas futuras</p>
+        </div>
+      </div>
+      <button class="btn btn-dark" onclick="scrollToSection('contacto')">Contacto</button>
+    </div>
 
-<body>
+    <div class="hero">
+      <div class="card hero-main">
+        <div class="badge" id="themeBadge">Tema premium</div>
+        <h2 id="heroTitle">Rifas con premio original y cierre por WhatsApp</h2>
+        <p id="heroText">
+          Usa esta página como tu base para futuras rifas: muestra el premio, captura interesados, conecta anuncios Click to WhatsApp y guarda tu cartera de clientes.
+        </p>
+        <div class="pillrow" id="pillRow">
+          <div class="pill">Premios originales</div>
+          <div class="pill">CTA a WhatsApp</div>
+          <div class="pill">Landing móvil</div>
+          <div class="pill">Captura de leads</div>
+        </div>
+        <div class="cta-row">
+          <button class="btn btn-primary" onclick="scrollToSection('activas')">Ver rifas activas</button>
+          <a class="btn btn-dark" id="ctaWA1" href="#" target="_blank" rel="noopener">Abrir WhatsApp</a>
+        </div>
+      </div>
+      <div class="card hero-side">
+        <img id="heroImage" src="https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=1000&q=80" alt="Rifa destacada">
+      </div>
+    </div>
 
-<div class="container">
-<h2 onclick="accesoAdmin()">🍀 Rifas El Tapatío</h2>
+    <div class="section" id="activas">
+      <h3>Rifas activas</h3>
+      <div id="raffles" class="grid"></div>
+    </div>
 
-<div id="tablero"></div>
+    <div class="section split">
+      <div class="card box">
+        <h3>Recibir próximas rifas</h3>
+        <p class="small">Guarda tus datos para avisarte antes que al público general.</p>
+        <label>Nombre</label>
+        <input id="leadName" type="text" placeholder="Tu nombre">
+        <label>WhatsApp</label>
+        <input id="leadPhone" type="tel" placeholder="10 dígitos">
+        <label>Interés</label>
+        <select id="leadInterest" onchange="applyThemeByInterest()">
+          <option value="premium">Perfumes / lujo</option>
+          <option value="tech">Electrónicos</option>
+          <option value="cash">Dinero / efectivo</option>
+          <option value="family">Familiar / hogar</option>
+        </select>
+        <button class="btn btn-primary" onclick="saveLead()">Quiero que me avisen</button>
+      </div>
 
-<input id="nombre" placeholder="Nombre">
-<input id="telefono" placeholder="Teléfono">
+      <div class="card box" id="contacto">
+        <h3>Contacto rápido</h3>
+        <p class="small">Ideal para campañas Meta Click to WhatsApp: el anuncio lleva directo al chat y la landing refuerza confianza.</p>
+        <div class="cta-row" style="margin-top:14px">
+          <a class="btn btn-primary" id="ctaWA2" href="#" target="_blank" rel="noopener">Apartar por WhatsApp</a>
+          <button class="btn btn-dark" onclick="scrollToSection('interes')">Unirme a la lista</button>
+        </div>
+      </div>
+    </div>
 
-<button onclick="registrar()">Apartar</button>
-</div>
+    <div class="section">
+      <div class="card box">
+        <h3>Cómo funciona</h3>
+        <div class="split">
+          <div>
+            <p class="small"><strong>1.</strong> Publica la rifa con premio, precio y fecha.</p>
+            <p class="small"><strong>2.</strong> Lleva tráfico desde Facebook e Instagram a WhatsApp.</p>
+            <p class="small"><strong>3.</strong> Guarda interesados para próximas rifas.</p>
+          </div>
+          <div>
+            <p class="small"><strong>4.</strong> Muestra evidencia del premio y del ganador.</p>
+            <p class="small"><strong>5.</strong> Usa temas distintos según la rifa.</p>
+            <p class="small"><strong>6.</strong> Mantén panel admin separado y seguro.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">© Rifas El Tapatío · Landing optimizada para conversión y crecimiento.</div>
+  </div>
+
+  <div class="sticky-cta">
+    <a class="btn btn-primary" id="ctaWA3" href="#" target="_blank" rel="noopener">Abrir WhatsApp</a>
+  </div>
 
 <script>
+  const PHONE = "52XXXXXXXXXX";
+  const firebaseConfig = { apiKey:"TU_API_KEY", authDomain:"TU_AUTH_DOMAIN", databaseURL:"TU_DATABASE_URL", projectId:"TU_PROJECT_ID" };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-// 🔥 FIREBASE CONFIG
-const firebaseConfig = {
-  apiKey: "AIzaSyAchA8tvM4Hum-anybTex8nzLNxKa8yz_M",
-  databaseURL: "https://rifa01-6ff39-default-rtdb.firebaseio.com"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-// 🔐 LOGIN
-const _u = "am9zZS5pbmZhbnRlMTIzMTk1QGdtYWlsLmNvbQ==";
-const _p = "cmlmYTIzNjk=";
-
-// 📊 DATA
-let seleccionados = [];
-let ocupados = [];
-
-// 🎯 GENERAR TABLERO
-function dibujar(){
-
-  const tab = document.getElementById("tablero");
-  tab.innerHTML="";
-
-  for(let i=0;i<100;i++){
-
-    const d=document.createElement("div");
-    d.className="numero";
-
-    if(ocupados.includes(i)){
-      d.classList.add("ocupado");
+  const THEME = {
+    premium: {
+      bodyClass: "theme-premium",
+      badge: "Tema premium",
+      title: "Rifas premium con premios que sí llaman la atención",
+      text: "Perfecto para perfumes, relojes, tenis, lujo y productos aspiracionales.",
+      image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1000&q=80"
+    },
+    tech: {
+      bodyClass: "theme-tech",
+      badge: "Tema tech",
+      title: "Rifas para electrónicos y premios de alta demanda",
+      text: "Ideal para celulares, audífonos, consolas y gadgets.",
+      image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1000&q=80"
+    },
+    cash: {
+      bodyClass: "theme-cash",
+      badge: "Tema efectivo",
+      title: "Rifas rápidas para monetizar con urgencia",
+      text: "Para dinámicas de efectivo, combos y cierres veloces.",
+      image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1000&q=80"
+    },
+    family: {
+      bodyClass: "theme-family",
+      badge: "Tema familiar",
+      title: "Rifas accesibles para público amplio",
+      text: "Útil para hogar, cocina, electrodomésticos y regalos.",
+      image: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1000&q=80"
     }
+  };
 
-    if(seleccionados.includes(i)){
-      d.classList.add("seleccionado");
-    }
-
-    d.innerText = i.toString().padStart(2,"0");
-
-    d.onclick=()=>{
-
-      if(ocupados.includes(i)) return;
-
-      if(seleccionados.includes(i)){
-        seleccionados = seleccionados.filter(n=>n!==i);
-      }else{
-        seleccionados.push(i);
-      }
-
-      dibujar();
-    }
-
-    tab.appendChild(d);
-  }
-}
-
-dibujar();
-
-// 💾 REGISTRO
-function registrar(){
-
-  const nombre=document.getElementById("nombre").value;
-  const tel=document.getElementById("telefono").value;
-
-  if(!nombre || !tel || seleccionados.length===0){
-    alert("Completa todo");
-    return;
+  function setWhatsAppLinks(){
+    const msg = "Hola, quiero información sobre rifas y números disponibles.";
+    const url = `https://wa.me/${PHONE}?text=${encodeURIComponent(msg)}`;
+    ["ctaWA1","ctaWA2","ctaWA3"].forEach(id => document.getElementById(id).href = url);
   }
 
-  seleccionados.forEach(n=>{
-    db.ref("rifa/participantes").push({
-      nombre,
-      tel,
-      numero:n
+  function scrollToSection(id){
+    document.getElementById(id).scrollIntoView({behavior:"smooth", block:"start"});
+  }
+
+  function applyThemeByInterest(){
+    const key = document.getElementById("leadInterest").value;
+    const t = THEME[key];
+    document.body.className = t.bodyClass;
+    document.getElementById("themeBadge").innerText = t.badge;
+    document.getElementById("heroTitle").innerText = t.title;
+    document.getElementById("heroText").innerText = t.text;
+    document.getElementById("heroImage").src = t.image;
+  }
+
+  function saveLead(){
+    const name = document.getElementById("leadName").value.trim();
+    const phone = document.getElementById("leadPhone").value.trim();
+    const interest = document.getElementById("leadInterest").value;
+    if(!name || phone.length < 10) return alert("Completa nombre y WhatsApp.");
+    const id = db.ref("leads").push().key;
+    db.ref("leads/" + id).set({ name, phone, interest, createdAt: Date.now() }).then(() => {
+      alert("Listo. Ya quedaste registrado.");
+      window.open(`https://wa.me/${PHONE}?text=${encodeURIComponent(`Hola, me interesan las rifas de ${interest}. Mi nombre es ${name}.`)}`, "_blank");
     });
-    ocupados.push(n);
-  });
-
-  seleccionados=[];
-  dibujar();
-
-  alert("Registrado");
-}
-
-// 🔐 ADMIN
-function accesoAdmin(){
-
-  const u=prompt("Correo");
-  const p=prompt("Clave");
-
-  if(btoa(u)===_u && btoa(p)===_p){
-    alert("Acceso correcto");
-  }else{
-    alert("Error");
   }
-}
 
+  function renderRaffles(){
+    db.ref("public_rifas").on("value", snap => {
+      const data = snap.val() || {};
+      const box = document.getElementById("raffles");
+      box.innerHTML = "";
+      const ids = Object.keys(data);
+      if(!ids.length){
+        box.innerHTML = `<div class="card box"><h4 style="margin:0 0 8px">Sin rifas activas</h4><p class="small">Cuando publiques una rifa aquí aparecerá automáticamente.</p></div>`;
+        return;
+      }
+      ids.reverse().forEach(id => {
+        const r = data[id];
+        const total = r.total || 0;
+        const sold = r.sold || 0;
+        const pct = total ? Math.round((sold/total)*100) : 0;
+        const img = r.image || THEME[r.theme || "premium"].image;
+        const wa = `Hola, quiero información de la rifa: ${r.title || id}`;
+        box.innerHTML += `
+          <div class="card raffle">
+            <img src="${img}" alt="${r.title || id}">
+            <div class="raffle-body">
+              <h4>${r.title || "Rifa activa"}</h4>
+              <div class="meta">
+                <span>Precio: $${r.price || 0}</span>
+                <span>Faltan: ${Math.max(0, total - sold)} números</span>
+                <span>Fecha: ${r.date || "Pendiente"}</span>
+              </div>
+              <p class="small">${r.description || "Premio original con sorteo claro y seguimiento por WhatsApp."}</p>
+              <div class="progress"><div class="bar" style="width:${pct}%"></div></div>
+              <div class="cta-row" style="margin-top:14px">
+                <a class="btn btn-primary" href="https://wa.me/${PHONE}?text=${encodeURIComponent(wa)}" target="_blank" rel="noopener">Click to WhatsApp</a>
+                <button class="btn btn-dark" onclick="scrollToSection('interes')">Quiero futuras rifas</button>
+              </div>
+            </div>
+          </div>`;
+      });
+    });
+  }
+
+  setWhatsAppLinks();
+  applyThemeByInterest();
+  renderRaffles();
 </script>
-
 </body>
 </html>
